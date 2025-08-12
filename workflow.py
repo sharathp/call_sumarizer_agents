@@ -3,7 +3,9 @@ Simplified LangGraph workflow for call processing.
 """
 
 import logging
+import os
 import time
+import uuid
 from typing import Optional
 
 from langgraph.graph import END, StateGraph
@@ -14,10 +16,11 @@ from agents import (
     TranscriptionAgent,
 )
 from utils.validation import AgentState, ProcessingResult, CallInput, InputType
-import uuid
+
 
 logger = logging.getLogger(__name__)
-
+# Enable LangSmith tracing
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
 
 class CallCenterWorkflow:
     """Simplified workflow for call processing."""
@@ -37,22 +40,23 @@ class CallCenterWorkflow:
             api_key=openai_api_key
         )
         
-        # Build the workflow
-        self.workflow = self._build_workflow()
+        # Build the graph
+        self.graph = self._build_graph()
     
-    def _build_workflow(self):
+    def _build_graph(self):
         """Build simplified LangGraph workflow."""
-        workflow = StateGraph(AgentState)
+        graph = StateGraph(AgentState)
         
         # Add nodes
-        workflow.add_node("transcription", self._run_transcription)
-        workflow.add_node("summarization", self._run_summarization)
-        workflow.add_node("quality_scoring", self._run_quality_scoring)
+        graph.add_node("transcription", self._run_transcription)
+        graph.add_node("summarization", self._run_summarization)
+        graph.add_node("quality_scoring", self._run_quality_scoring)
         
         # Simple linear flow with retry logic
-        workflow.set_entry_point("transcription")
+        graph.set_entry_point("transcription")
         
-        workflow.add_conditional_edges(
+        # retry twice, before going to summarization
+        graph.add_conditional_edges(
             "transcription",
             self._route_after_transcription,
             {
@@ -62,7 +66,8 @@ class CallCenterWorkflow:
             }
         )
         
-        workflow.add_conditional_edges(
+        # retry twice, before going to quality scoring
+        graph.add_conditional_edges(
             "summarization",
             self._route_after_summarization,
             {
@@ -72,9 +77,17 @@ class CallCenterWorkflow:
             }
         )
         
-        workflow.add_edge("quality_scoring", END)
+        # retry twice, and then end
+        graph.add_conditional_edges(
+            "quality_scoring",
+            self._route_after_quality_scoring,
+            {
+                "retry": "quality_scoring",
+                "end": END
+            }
+        )
         
-        return workflow.compile()
+        return graph.compile()
     
     def _run_transcription(self, state: AgentState) -> AgentState:
         """Run transcription with validation."""
@@ -86,18 +99,32 @@ class CallCenterWorkflow:
     
     def _run_summarization(self, state: AgentState) -> AgentState:
         """Run summarization."""
-        return self.summarization_agent.process(state)
+        try:
+            return self.summarization_agent.process(state)
+        except Exception as e:
+            state.add_error("summarization", str(e))
+            return state
     
     def _run_quality_scoring(self, state: AgentState) -> AgentState:
         """Run quality scoring."""
-        return self.quality_agent.process(state)
+        try:
+            return self.quality_agent.process(state)
+        except Exception as e:
+            state.add_error("quality_scoring", str(e))
+            return state
+    
+    def _should_retry(self, state: AgentState, agent_name: str, max_retries: int = 2) -> bool:
+        """Check if an agent should retry based on errors and retry count."""
+        agent_errors = [e for e in state.errors if e["agent"] == agent_name]
+        
+        if agent_errors and state.retry_count < max_retries:
+            state.retry_count += 1
+            return True
+        return False
     
     def _route_after_transcription(self, state: AgentState) -> str:
         """Route after transcription with simple retry logic."""
-        transcription_errors = [e for e in state.errors if e["agent"] == "transcription"]
-        
-        if transcription_errors and state.retry_count < 2:
-            state.retry_count += 1
+        if self._should_retry(state, "transcription"):
             return "retry"
         
         # Continue if we have text (from transcription or original input)
@@ -108,16 +135,20 @@ class CallCenterWorkflow:
     
     def _route_after_summarization(self, state: AgentState) -> str:
         """Route after summarization with simple retry logic."""
-        summarization_errors = [e for e in state.errors if e["agent"] == "summarization"]
-        
-        if summarization_errors and state.retry_count < 2:
-            state.retry_count += 1
+        if self._should_retry(state, "summarization"):
             return "retry"
         
         return "continue" if state.summary else "end"
     
+    def _route_after_quality_scoring(self, state: AgentState) -> str:
+        """Route after quality scoring with simple retry logic."""
+        if self._should_retry(state, "quality_scoring"):
+            return "retry"
+        
+        return "end"  # Always end after quality scoring (success or final failure)
+    
     def process_call(self, input_data: CallInput) -> ProcessingResult:
-        """Process a call through the simplified workflow."""
+        """Process a call through the simplified graph."""
         start_time = time.time()
         
         try:
@@ -127,8 +158,8 @@ class CallCenterWorkflow:
                 input_data=input_data
             )
             
-            # Run workflow
-            result = self.workflow.invoke(state)
+            # Run graph
+            result = self.graph.invoke(state)
             
             # LangGraph returns a dict, convert back to AgentState
             final_state = AgentState(**result)
@@ -153,10 +184,10 @@ class CallCenterWorkflow:
             )
             
         except Exception as e:
-            logger.error(f"Workflow failed: {str(e)}")
+            logger.error(f"Workflow execution failed: {str(e)}")
             return ProcessingResult(
                 call_id="error",
                 status="failed",
-                errors=[{"agent": "workflow", "error": str(e), "timestamp": ""}],
+                errors=[{"agent": "worflow", "error": str(e), "timestamp": ""}],
                 processing_time_seconds=time.time() - start_time
             )

@@ -38,6 +38,17 @@ def main():
             help="Required for transcription, summarization, and quality scoring"
         )
         
+        langsmith_key = st.text_input(
+            "LangSmith API Key (optional)",
+            type="password", 
+            value=os.getenv('LANGCHAIN_API_KEY', ''),
+            help="For debugging traces in LangSmith - visit https://smith.langchain.com/"
+        )
+        
+        if langsmith_key:
+            os.environ["LANGCHAIN_API_KEY"] = langsmith_key
+            os.environ["LANGCHAIN_TRACING_V2"] = "true"
+        
         if not openai_key:
             st.error("Please provide your OpenAI API key")
             return
