@@ -144,3 +144,4 @@ uv add --dev pytest ruff mypy
 uv pip compile pyproject.toml -o requirements.txt
 ```
 However, never manually edit requirements.txt - always update dependencies in pyproject.toml.
+- manage dependencies and running application using uv
