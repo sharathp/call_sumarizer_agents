@@ -3,6 +3,7 @@ Modern Streamlit UI for AI Call Center Assistant.
 """
 
 import os
+import time
 import streamlit as st
 from dotenv import load_dotenv
 import plotly.graph_objects as go
@@ -223,13 +224,14 @@ def render_quality_gauge(score, title, color="#3b82f6"):
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = score,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': title, 'font': {'size': 16}},
+        domain = {'x': [0, 1], 'y': [0.1, 0.9]},
+        title = {'text': title, 'font': {'size': 14}},
+        number = {'font': {'size': 24}},
         gauge = {
-            'axis': {'range': [None, 10], 'tickwidth': 1, 'tickcolor': "darkblue"},
-            'bar': {'color': color},
+            'axis': {'range': [None, 10], 'tickwidth': 1, 'tickcolor': "darkblue", 'tickfont': {'size': 10}},
+            'bar': {'color': color, 'thickness': 0.8},
             'bgcolor': "white",
-            'borderwidth': 2,
+            'borderwidth': 1,
             'bordercolor': "gray",
             'steps': [
                 {'range': [0, 4], 'color': "#fee2e2"},
@@ -237,17 +239,17 @@ def render_quality_gauge(score, title, color="#3b82f6"):
                 {'range': [7, 10], 'color': "#dcfce7"}
             ],
             'threshold': {
-                'line': {'color': "red", 'width': 4},
-                'thickness': 0.75,
+                'line': {'color': "red", 'width': 3},
+                'thickness': 0.6,
                 'value': 8.0
             }
         }
     ))
     
     fig.update_layout(
-        height=250,
-        margin=dict(l=20, r=20, t=40, b=20),
-        font={'color': "white", 'family': "Arial", 'size': 14},
+        height=180,
+        margin=dict(l=10, r=10, t=30, b=10),
+        font={'color': "white", 'family': "Arial", 'size': 12},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
@@ -337,9 +339,140 @@ def main():
                         file_name=uploaded_file.name
                     )
                     
-                    # Process through workflow
-                    with st.spinner("Processing call... This may take a moment."):
-                        result = workflow.process_call(call_input)
+                    # Process through workflow with detailed progress
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    timing_text = st.empty()
+                    
+                    # Track timing for each step
+                    step_times = {}
+                    overall_start = time.time()
+                    
+                    # Step 1: Initialize
+                    init_start = time.time()
+                    status_text.text("🚀 Initializing workflow...")
+                    progress_bar.progress(10)
+                    time.sleep(0.5)
+                    step_times["initialize"] = time.time() - init_start
+                    timing_text.markdown(f"<small>Initialize: {step_times['initialize']:.1f}s</small>", unsafe_allow_html=True)
+                    
+                    # Step 2: Transcription
+                    transcription_start = time.time()
+                    if input_type == InputType.AUDIO:
+                        status_text.text("🎤 Transcribing audio...")
+                        progress_bar.progress(25)
+                    else:
+                        status_text.text("📄 Processing transcript...")
+                        progress_bar.progress(25)
+                    
+                    # Start processing in background
+                    import threading
+                    result_container = {"result": None, "error": None}
+                    
+                    def process_workflow():
+                        try:
+                            result_container["result"] = workflow.process_call(call_input)
+                        except Exception as e:
+                            result_container["error"] = e
+                    
+                    # Start processing
+                    thread = threading.Thread(target=process_workflow)
+                    thread.start()
+                    
+                    # Transcription phase
+                    transcription_complete = False
+                    for i in range(8):
+                        if not thread.is_alive():
+                            transcription_complete = True
+                            break
+                        time.sleep(0.5)
+                        if result_container["error"]:
+                            break
+                    
+                    if not transcription_complete:
+                        step_times["transcription"] = time.time() - transcription_start
+                        timing_text.markdown(f"<small>Initialize: {step_times['initialize']:.1f}s | Transcription: {step_times['transcription']:.1f}s</small>", unsafe_allow_html=True)
+                    
+                    if thread.is_alive():
+                        summarization_start = time.time()
+                        status_text.text("📝 Summarizing call content...")
+                        progress_bar.progress(55)
+                        
+                        # Summarization phase
+                        summarization_complete = False
+                        for i in range(8):
+                            if not thread.is_alive():
+                                summarization_complete = True
+                                break
+                            time.sleep(0.5)
+                            if result_container["error"]:
+                                break
+                        
+                        if not summarization_complete:
+                            step_times["summarization"] = time.time() - summarization_start
+                            timing_display = f"Initialize: {step_times['initialize']:.1f}s"
+                            if "transcription" in step_times:
+                                timing_display += f" | Transcription: {step_times['transcription']:.1f}s"
+                            timing_display += f" | Summarization: {step_times['summarization']:.1f}s"
+                            timing_text.markdown(f"<small>{timing_display}</small>", unsafe_allow_html=True)
+                    
+                    if thread.is_alive():
+                        quality_start = time.time()
+                        status_text.text("🎯 Assessing call quality...")
+                        progress_bar.progress(80)
+                        
+                        # Quality scoring phase
+                        for i in range(8):
+                            if not thread.is_alive():
+                                break
+                            time.sleep(0.5)
+                            if result_container["error"]:
+                                break
+                        
+                        step_times["quality_scoring"] = time.time() - quality_start
+                    
+                    # Wait for completion
+                    while thread.is_alive():
+                        time.sleep(0.1)
+                    
+                    # Check for retry scenarios
+                    if result_container["result"] and result_container["result"].errors:
+                        retry_start = time.time()
+                        status_text.text("🔄 Retrying failed components...")
+                        progress_bar.progress(90)
+                        time.sleep(1)
+                        step_times["retry"] = time.time() - retry_start
+                    
+                    # Finalize
+                    status_text.text("✅ Processing complete!")
+                    progress_bar.progress(100)
+                    
+                    # Show final timing breakdown
+                    total_time = time.time() - overall_start
+                    timing_display = f"**Total: {total_time:.1f}s** | "
+                    timing_parts = []
+                    if "transcription" in step_times:
+                        timing_parts.append(f"Transcription: {step_times['transcription']:.1f}s")
+                    if "summarization" in step_times:
+                        timing_parts.append(f"Summarization: {step_times['summarization']:.1f}s")
+                    if "quality_scoring" in step_times:
+                        timing_parts.append(f"Quality: {step_times['quality_scoring']:.1f}s")
+                    if "retry" in step_times:
+                        timing_parts.append(f"Retry: {step_times['retry']:.1f}s")
+                    
+                    timing_display += " | ".join(timing_parts)
+                    timing_text.markdown(f"<small>{timing_display}</small>", unsafe_allow_html=True)
+                    
+                    time.sleep(1)
+                    
+                    # Clear progress indicators but keep timing
+                    progress_bar.empty()
+                    status_text.empty()
+                    
+                    if result_container["error"]:
+                        raise result_container["error"]
+                    
+                    result = result_container["result"]
                     
                     # Store result in session state
                     st.session_state.result = result
