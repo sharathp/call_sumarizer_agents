@@ -17,7 +17,7 @@ load_dotenv()
 # Page configuration
 st.set_page_config(
     page_title="AI Call Center Assistant",
-    page_icon="📞",
+    page_icon="🎧",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -214,7 +214,7 @@ def render_header():
     """Render the professional header section."""
     st.markdown("""
     <div class="header-container">
-        <div class="header-title">🎧 AI Call Center Assistant</div>
+        <div class="header-title"><i class="fas fa-headset"></i> AI Call Center Assistant</div>
         <div class="header-subtitle">Enterprise-grade call analysis with automated summarization and quality scoring</div>
     </div>
     """, unsafe_allow_html=True)
@@ -224,31 +224,34 @@ def render_quality_gauge(score, title, color="#3b82f6"):
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = score,
-        domain = {'x': [0, 1], 'y': [0.1, 0.9]},
-        title = {'text': title, 'font': {'size': 14}},
-        number = {'font': {'size': 24}},
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': title, 'font': {'size': 16, 'color': 'white'}},
+        number = {'font': {'size': 32, 'color': 'white'}, 'suffix': "/10"},
         gauge = {
-            'axis': {'range': [None, 10], 'tickwidth': 1, 'tickcolor': "darkblue", 'tickfont': {'size': 10}},
-            'bar': {'color': color, 'thickness': 0.8},
-            'bgcolor': "white",
-            'borderwidth': 1,
-            'bordercolor': "gray",
+            'axis': {
+                'range': [0, 10], 
+                'tickwidth': 2, 
+                'tickcolor': "white", 
+                'tickfont': {'size': 12, 'color': 'white'},
+                'tickmode': 'linear',
+                'tick0': 0,
+                'dtick': 2
+            },
+            'bar': {'color': color, 'thickness': 0.4},
+            'bgcolor': "#1e293b",
+            'borderwidth': 2,
+            'bordercolor': "#475569",
             'steps': [
-                {'range': [0, 4], 'color': "#fee2e2"},
-                {'range': [4, 7], 'color': "#fef3c7"},
-                {'range': [7, 10], 'color': "#dcfce7"}
-            ],
-            'threshold': {
-                'line': {'color': "red", 'width': 3},
-                'thickness': 0.6,
-                'value': 8.0
-            }
+                {'range': [0, 4], 'color': "#450a0a"},
+                {'range': [4, 7], 'color': "#451a03"},
+                {'range': [7, 10], 'color': "#052e16"}
+            ]
         }
     ))
     
     fig.update_layout(
-        height=180,
-        margin=dict(l=10, r=10, t=30, b=10),
+        height=200,
+        margin=dict(l=20, r=20, t=40, b=20),
         font={'color': "white", 'family': "Arial", 'size': 12},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
@@ -259,15 +262,21 @@ def render_quality_gauge(score, title, color="#3b82f6"):
 def main():
     """Main Streamlit application."""
     
+    # Add Font Awesome
+    st.markdown(
+        '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">',
+        unsafe_allow_html=True
+    )
+
     # Inject custom CSS
     inject_custom_css()
-    
+
     # Render header
     render_header()
-    
+
     # Sidebar for configuration
     with st.sidebar:
-        st.header("⚙️ Configuration")
+        st.markdown('<i class="fas fa-cog" style="margin-right: 8px; font-size: 1.2em;"></i>**Configuration**', unsafe_allow_html=True)
         
         openai_key = st.text_input(
             "OpenAI API Key",
@@ -295,7 +304,7 @@ def main():
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.subheader("📤 Upload Call Data")
+        st.markdown('<i class="fas fa-upload" style="margin-right: 8px; font-size: 1.1em;"></i>**Upload Call Data**', unsafe_allow_html=True)
         st.write("Select an audio file or transcript to begin analysis")
         
         uploaded_file = st.file_uploader(
@@ -306,9 +315,16 @@ def main():
         
         if uploaded_file:
             file_size = len(uploaded_file.getvalue()) / 1024 / 1024  # MB
-            st.success(f"✅ **{uploaded_file.name}** ({file_size:.1f} MB)")
+            st.markdown(f'<div style="padding: 0.75rem; background-color: #dcfce7; border: 1px solid #16a34a; border-radius: 0.5rem; color: #166534;"><i class="fas fa-check-circle"></i> **{uploaded_file.name}** ({file_size:.1f} MB)</div>', unsafe_allow_html=True)
             
-            if st.button("🚀 Process Call", type="primary", use_container_width=True):
+            process_button = st.button(
+                "🚀 Process Call", 
+                type="primary", 
+                use_container_width=True,
+                help="Start processing the uploaded file"
+            )
+            
+            if process_button:
                 # Process the file
                 try:
                     # Create workflow
@@ -350,7 +366,7 @@ def main():
                     
                     # Step 1: Initialize
                     init_start = time.time()
-                    status_text.text("🚀 Initializing workflow...")
+                    status_text.markdown('<i class="fas fa-rocket"></i> Initializing workflow...', unsafe_allow_html=True)
                     progress_bar.progress(10)
                     time.sleep(0.5)
                     step_times["initialize"] = time.time() - init_start
@@ -359,10 +375,10 @@ def main():
                     # Step 2: Transcription
                     transcription_start = time.time()
                     if input_type == InputType.AUDIO:
-                        status_text.text("🎤 Transcribing audio...")
+                        status_text.markdown('<i class="fas fa-microphone"></i> Transcribing audio...', unsafe_allow_html=True)
                         progress_bar.progress(25)
                     else:
-                        status_text.text("📄 Processing transcript...")
+                        status_text.markdown('<i class="fas fa-file-text"></i> Processing transcript...', unsafe_allow_html=True)
                         progress_bar.progress(25)
                     
                     # Start processing in background
@@ -395,7 +411,7 @@ def main():
                     
                     if thread.is_alive():
                         summarization_start = time.time()
-                        status_text.text("📝 Summarizing call content...")
+                        status_text.markdown('<i class="fas fa-edit"></i> Summarizing call content...', unsafe_allow_html=True)
                         progress_bar.progress(55)
                         
                         # Summarization phase
@@ -418,7 +434,7 @@ def main():
                     
                     if thread.is_alive():
                         quality_start = time.time()
-                        status_text.text("🎯 Assessing call quality...")
+                        status_text.markdown('<i class="fas fa-bullseye"></i> Assessing call quality...', unsafe_allow_html=True)
                         progress_bar.progress(80)
                         
                         # Quality scoring phase
@@ -438,13 +454,13 @@ def main():
                     # Check for retry scenarios
                     if result_container["result"] and result_container["result"].errors:
                         retry_start = time.time()
-                        status_text.text("🔄 Retrying failed components...")
+                        status_text.markdown('<i class="fas fa-redo"></i> Retrying failed components...', unsafe_allow_html=True)
                         progress_bar.progress(90)
                         time.sleep(1)
                         step_times["retry"] = time.time() - retry_start
                     
                     # Finalize
-                    status_text.text("✅ Processing complete!")
+                    status_text.markdown('<i class="fas fa-check-circle"></i> Processing complete!', unsafe_allow_html=True)
                     progress_bar.progress(100)
                     
                     # Show final timing breakdown
@@ -476,23 +492,32 @@ def main():
                     
                     # Store result in session state
                     st.session_state.result = result
-                    st.success("✅ Processing complete!")
+                    st.markdown('<div style="padding: 0.75rem; background-color: #dcfce7; border: 1px solid #16a34a; border-radius: 0.5rem; color: #166534;"><i class="fas fa-check-circle"></i> Processing complete!</div>', unsafe_allow_html=True)
                     
                 except Exception as e:
-                    st.error(f"❌ Processing failed: {str(e)}")
+                    st.markdown(f'<div style="padding: 0.75rem; background-color: #fee2e2; border: 1px solid #dc2626; border-radius: 0.5rem; color: #dc2626;"><i class="fas fa-exclamation-triangle"></i> Processing failed: {str(e)}</div>', unsafe_allow_html=True)
     
     with col2:
-        st.subheader("📊 Analysis Results")
+        st.markdown('<i class="fas fa-chart-bar" style="margin-right: 8px; font-size: 1.1em;"></i>**Analysis Results**', unsafe_allow_html=True)
         
         if hasattr(st.session_state, 'result') and st.session_state.result:
             result = st.session_state.result
             
             # Status display at the top
-            status_emoji = {"success": "✅", "partial": "⚠️", "failed": "❌"}.get(result.status, "❓")
-            st.info(f"{status_emoji} Processing {result.status.upper()} ({result.processing_time_seconds:.1f}s)")
+            status_icons = {
+                "success": '<i class="fas fa-check-circle" style="color: green;"></i>',
+                "partial": '<i class="fas fa-exclamation-triangle" style="color: orange;"></i>', 
+                "failed": '<i class="fas fa-times-circle" style="color: red;"></i>'
+            }
+            status_icon = status_icons.get(result.status, '<i class="fas fa-question-circle"></i>')
+            st.markdown(f'<div style="padding: 0.75rem; background-color: #dbeafe; border: 1px solid #3b82f6; border-radius: 0.5rem; color: #1e40af;">{status_icon} Processing {result.status.upper()} ({result.processing_time_seconds:.1f}s)</div>', unsafe_allow_html=True)
             
             # Tabbed interface
-            tab1, tab2, tab3 = st.tabs(["📝 Call Summary", "📊 Quality Assessment", "📄 Transcript"])
+            tab1, tab2, tab3 = st.tabs([
+                "📝 Call Summary",
+                "📊 Quality Assessment", 
+                "📄 Transcript"
+            ])
             
             with tab1:
                 # Call Summary tab content
@@ -501,7 +526,7 @@ def main():
                     
                     # Key Points - only show if they exist
                     if result.summary.key_points:
-                        st.markdown("**🔑 Key Points:**")
+                        st.markdown('**<i class="fas fa-key" style="margin-right: 8px;"></i>Key Points:**', unsafe_allow_html=True)
                         for point in result.summary.key_points:
                             st.markdown(f"• {point}")
                     
@@ -510,15 +535,15 @@ def main():
                     with col_sentiment:
                         # Fix sentiment emoji
                         sentiment_emojis = {
-                            "positive": "😊",
-                            "neutral": "😐", 
-                            "negative": "😔"
+                            "positive": '😊',
+                            "neutral": '😐', 
+                            "negative": '😔'
                         }
-                        emoji = sentiment_emojis.get(result.summary.sentiment.lower(), "😐")
-                        st.metric("Sentiment", f"{emoji} {result.summary.sentiment.title()}")
+                        emoji = sentiment_emojis.get(result.summary.sentiment.lower(), '😐')
+                        st.metric("Sentiment", f'{emoji} {result.summary.sentiment.title()}')
                     
                     with col_outcome:
-                        st.metric("Outcome", f"🎯 {result.summary.outcome}")
+                        st.metric("Outcome", f'🎯 {result.summary.outcome}')
                 else:
                     st.info("No summary available for this call.")
             
@@ -554,7 +579,7 @@ def main():
                     
                     # Feedback
                     if result.quality_score.feedback:
-                        st.markdown("**💬 Performance Feedback:**")
+                        st.markdown('**<i class="fas fa-comment" style="margin-right: 8px;"></i>Performance Feedback:**', unsafe_allow_html=True)
                         st.write(result.quality_score.feedback)
                 else:
                     st.info("No quality assessment available for this call.")
@@ -568,7 +593,7 @@ def main():
             
             # Errors (show in all tabs if present)
             if result.errors:
-                st.warning("⚠️ Issues encountered:")
+                st.markdown('<div style="padding: 0.75rem; background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 0.5rem; color: #92400e;"><i class="fas fa-exclamation-triangle"></i> Issues encountered:</div>', unsafe_allow_html=True)
                 for error in result.errors:
                     st.markdown(f"- **{error['agent']}**: {error['error']}")
         
