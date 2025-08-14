@@ -4,7 +4,7 @@ Simplified Pydantic models for data validation.
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -19,7 +19,7 @@ class CallInput(BaseModel):
     """Input model for call data validation."""
     
     input_type: InputType
-    content: Union[bytes, str]
+    content: Any  # bytes for audio, str for text transcripts
     file_name: Optional[str] = None
 
 
@@ -30,6 +30,16 @@ class CallSummary(BaseModel):
     key_points: List[str]
     sentiment: Literal["positive", "neutral", "negative"]
     outcome: Literal["resolved", "escalated", "follow_up", "unresolved"]
+
+
+class SpeakerSegment(BaseModel):
+    """Individual speaker segment with timing information."""
+    
+    speaker: str
+    text: str
+    start: float
+    end: float
+    confidence: Optional[float] = None
 
 
 class QualityScore(BaseModel):
@@ -47,10 +57,11 @@ class AgentState(BaseModel):
     call_id: str
     input_data: CallInput
     transcript_text: Optional[str] = None
+    speakers: List[SpeakerSegment] = Field(default_factory=list)
     summary: Optional[CallSummary] = None
     quality_score: Optional[QualityScore] = None
     errors: List[Dict[str, Any]] = Field(default_factory=list)
-    retry_count: int = 0
+    retry_counts: Dict[str, int] = Field(default_factory=dict)
     
     def add_error(self, agent: str, error: str) -> None:
         """Add an error to the state."""
@@ -67,6 +78,7 @@ class ProcessingResult(BaseModel):
     call_id: str
     status: Literal["success", "partial", "failed"]
     transcript_text: Optional[str] = None
+    speakers: List[SpeakerSegment] = Field(default_factory=list)
     summary: Optional[CallSummary] = None
     quality_score: Optional[QualityScore] = None
     errors: List[Dict[str, Any]] = Field(default_factory=list)

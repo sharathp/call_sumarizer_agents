@@ -40,7 +40,10 @@ def process_file(file_path: str) -> None:
         )
         
         # Create workflow and process
-        workflow = CallCenterWorkflow()
+        workflow = CallCenterWorkflow(
+            openai_api_key=os.getenv("OPENAI_API_KEY"),
+            deepgram_api_key=os.getenv("DEEPGRAM_API_KEY")
+        )
         result = workflow.process_call(call_input)
         
         # Print results
