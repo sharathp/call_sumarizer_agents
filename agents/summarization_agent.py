@@ -43,17 +43,16 @@ class SummarizationAgent:
             # Use speaker segments for enhanced analysis if available
             if state.speakers:
                 summary = self._generate_summary_with_speakers(state.speakers, state.transcript_text)
-                logger.info(f"Summary generation with speaker analysis completed for call {state.call_id}")
+                self.log_success(state, "Summary generation with speaker analysis completed")
             else:
                 # Fallback to transcript-only analysis
                 summary = self._generate_summary(state.transcript_text)
-                logger.info(f"Summary generation with transcript fallback completed for call {state.call_id}")
+                self.log_success(state, "Summary generation with transcript fallback completed")
                 
             state.summary = summary
             
         except Exception as e:
-            logger.error(f"Summarization failed: {str(e)}")
-            state.add_error("summarization", str(e))
+            return self.handle_error(state, e, "Summarization failed")
         
         return state
     

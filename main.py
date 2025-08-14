@@ -4,6 +4,7 @@ Simplified CLI for AI Call Center Assistant.
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
