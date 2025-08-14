@@ -362,6 +362,9 @@ def main():
     # Main content
     col1, col2 = st.columns([1, 2])
     
+    # Initialize uploaded_file variable
+    uploaded_file = None
+    
     with col1:
         st.markdown('<i class="fas fa-upload" style="margin-right: 8px; font-size: 1.1em;"></i>**Upload Call Data**', unsafe_allow_html=True)
         st.write("Select an audio file or transcript to begin analysis")
@@ -371,6 +374,25 @@ def main():
             type=['mp3', 'wav', 'm4a', 'txt'],
             help="Audio files (.mp3, .wav, .m4a) or text transcripts (.txt)"
         )
+        
+        # Reset UI state when a different file is uploaded
+        if uploaded_file:
+            # Check if this is a new file (different from the last processed one)
+            current_file_id = f"{uploaded_file.name}_{len(uploaded_file.getvalue())}"
+            if 'last_processed_file_id' not in st.session_state:
+                st.session_state.last_processed_file_id = None
+            
+            if st.session_state.last_processed_file_id != current_file_id:
+                # Clear previous results and UI state
+                if 'result' in st.session_state:
+                    del st.session_state.result
+                if 'processing_complete' in st.session_state:
+                    del st.session_state.processing_complete
+                if 'progress_status' in st.session_state:
+                    del st.session_state.progress_status
+                    
+                # Update the file ID
+                st.session_state.last_processed_file_id = current_file_id
         
         if uploaded_file:
             file_size = len(uploaded_file.getvalue()) / 1024 / 1024  # MB
@@ -559,6 +581,7 @@ def main():
     with col2:
         st.markdown('<i class="fas fa-chart-bar" style="margin-right: 8px; font-size: 1.1em;"></i>**Analysis Results**', unsafe_allow_html=True)
         
+        # Check if we have results to display
         if hasattr(st.session_state, 'result') and st.session_state.result:
             result = st.session_state.result
             
@@ -663,7 +686,10 @@ def main():
                     st.markdown(f"- **{error['agent']}**: {error['error']}")
         
         else:
-            st.info("Upload and process a file to see results here.")
+            if uploaded_file:
+                st.info("Click 'Process Call' to analyze the uploaded file.")
+            else:
+                st.info("Upload and process a file to see results here.")
 
 
 if __name__ == "__main__":
