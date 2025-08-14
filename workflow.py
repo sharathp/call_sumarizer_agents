@@ -27,10 +27,14 @@ class CallCenterWorkflow:
     
     def __init__(
         self,
-        openai_api_key: Optional[str] = None
+        openai_api_key: Optional[str] = None,
+        deepgram_api_key: Optional[str] = None
     ):
-        # Initialize all agents with OpenAI
-        self.transcription_agent = TranscriptionAgent(api_key=openai_api_key)
+        # Initialize transcription agent with Deepgram and OpenAI fallback
+        self.transcription_agent = TranscriptionAgent(
+            deepgram_api_key=deepgram_api_key,
+            openai_api_key=openai_api_key
+        )
         self.summarization_agent = SummarizationAgent(
             model_provider="openai",
             api_key=openai_api_key
@@ -114,12 +118,18 @@ class CallCenterWorkflow:
             return state
     
     def _should_retry(self, state: AgentState, agent_name: str, max_retries: int = 2) -> bool:
-        """Check if an agent should retry based on errors and retry count."""
+        """Check if an agent should retry based on errors and per-agent retry count."""
         agent_errors = [e for e in state.errors if e["agent"] == agent_name]
+        current_retries = state.retry_counts.get(agent_name, 0)
         
-        if agent_errors and state.retry_count < max_retries:
-            state.retry_count += 1
+        logger.info(f"Checking retry for {agent_name}: {len(agent_errors)} errors, {current_retries} retries so far")
+        
+        if agent_errors and current_retries < max_retries:
+            state.retry_counts[agent_name] = current_retries + 1
+            logger.warning(f"Retrying {agent_name} (attempt {state.retry_counts[agent_name]}/{max_retries}) due to errors: {[e['error'] for e in agent_errors[-3:]]}")
             return True
+        elif agent_errors:
+            logger.error(f"Max retries ({max_retries}) exceeded for {agent_name}. Final errors: {[e['error'] for e in agent_errors[-3:]]}")
         return False
     
     def _route_after_transcription(self, state: AgentState) -> str:
@@ -177,6 +187,7 @@ class CallCenterWorkflow:
                 call_id=final_state.call_id,
                 status=status,
                 transcript_text=final_state.transcript_text,
+                speakers=final_state.speakers,
                 summary=final_state.summary,
                 quality_score=final_state.quality_score,
                 errors=final_state.errors,
