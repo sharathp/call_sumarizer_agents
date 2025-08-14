@@ -10,11 +10,9 @@ from typing import Optional
 
 from langgraph.graph import END, StateGraph
 
-from agents import (
-    QualityScoringAgent,
-    SummarizationAgent,
-    TranscriptionAgent,
-)
+from agents import TranscriptionAgent
+from agents.summarization_agent_refactored import SummarizationAgent
+from agents.quality_score_agent_refactored import QualityScoringAgent
 from utils.validation import AgentState, ProcessingResult, CallInput, InputType
 
 
@@ -119,17 +117,26 @@ class CallCenterWorkflow:
     
     def _should_retry(self, state: AgentState, agent_name: str, max_retries: int = 2) -> bool:
         """Check if an agent should retry based on errors and per-agent retry count."""
-        agent_errors = [e for e in state.errors if e["agent"] == agent_name]
+        # Get current retry count BEFORE incrementing
         current_retries = state.retry_counts.get(agent_name, 0)
         
-        logger.info(f"Checking retry for {agent_name}: {len(agent_errors)} errors, {current_retries} retries so far")
+        # Only consider the LATEST error for this agent (not accumulated errors from previous retries)
+        agent_errors = [e for e in state.errors if e["agent"] == agent_name]
         
-        if agent_errors and current_retries < max_retries:
+        # Check if there's a NEW error (errors list grew since last check)
+        # We need to detect if this is a fresh error, not from a previous attempt
+        has_new_error = len(agent_errors) > current_retries
+        
+        logger.info(f"Checking retry for {agent_name}: {len(agent_errors)} total errors, {current_retries} retries so far, new error: {has_new_error}")
+        
+        if has_new_error and current_retries < max_retries:
             state.retry_counts[agent_name] = current_retries + 1
-            logger.warning(f"Retrying {agent_name} (attempt {state.retry_counts[agent_name]}/{max_retries}) due to errors: {[e['error'] for e in agent_errors[-3:]]}")
+            latest_error = agent_errors[-1]['error'] if agent_errors else 'Unknown'
+            logger.warning(f"Retrying {agent_name} (attempt {state.retry_counts[agent_name]}/{max_retries}) due to error: {latest_error[:100]}")
             return True
-        elif agent_errors:
-            logger.error(f"Max retries ({max_retries}) exceeded for {agent_name}. Final errors: {[e['error'] for e in agent_errors[-3:]]}")
+        elif has_new_error and current_retries >= max_retries:
+            logger.error(f"Max retries ({max_retries}) exceeded for {agent_name}. Final error: {agent_errors[-1]['error'] if agent_errors else 'Unknown'}")
+        
         return False
     
     def _route_after_transcription(self, state: AgentState) -> str:
