@@ -27,25 +27,7 @@ The system consists of 5 specialized agents:
 
 ## Project Structure
 
-```
-call_summarizer_agents/
-├── agents/               # Individual agent implementations
-│   ├── intake_agent.py
-│   ├── transcription_agent.py
-│   ├── summarization_agent.py
-│   ├── quality_score_agent.py
-│   └── routing_agent.py
-├── ui/                  # Streamlit web interface
-│   └── streamlit_app.py
-├── utils/               # Validation and helper functions
-│   └── validation.py
-├── data/                # Sample transcripts and test data
-│   └── sample_transcripts/
-├── config/              # Configuration files
-│   └── mcp.yaml
-├── docker-compose.yml   # Docker deployment configuration
-└── main.py             # Entry point
-```
+For current project structure and detailed architecture information, see **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ## Development Commands
 
@@ -88,6 +70,19 @@ uv run mypy .
 3. **Structured Outputs**: Use Pydantic models for all agent outputs to ensure consistency
 4. **Memory Management**: Use LangGraph Memory or Redis/Postgres for call context retention
 5. **Function Calling**: Implement QA scoring with structured rubrics using function calling
+
+## Error Handling Implementation
+
+When implementing agents:
+- Use `BaseAgent.handle_error()` for consistent error handling
+- Return modified state instead of raising exceptions
+- Add errors to `AgentState.errors` with context
+
+For detailed error handling patterns, retry logic, and fallback strategies, see **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#error-handling--resilience)**.
+
+## Environment Setup
+
+Copy `.env.template` to `.env` and configure API keys. For detailed environment validation, testing commands, and troubleshooting, see **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md#api-configuration-issues)**.
 
 ## Key Features to Implement
 
