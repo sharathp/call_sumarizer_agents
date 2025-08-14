@@ -34,13 +34,10 @@ pip install -e .
 
 ### Configuration
 
-Create a `.env` file with your API keys:
-
 ```bash
-OPENAI_API_KEY=your_openai_key_here
-DEEPGRAM_API_KEY=your_deepgram_key_here
-LANGCHAIN_API_KEY=your_langsmith_key_here  # Optional, for debugging traces
-LOG_LEVEL=INFO  # Optional, controls logging verbosity (DEBUG, INFO, WARNING, ERROR)
+# Copy environment template and add your API keys
+cp .env.template .env
+# Edit .env with your OpenAI and Deepgram API keys
 ```
 
 ### Usage
@@ -94,88 +91,18 @@ The web interface provides:
 - **Model Selection**: Configurable LLM providers and models
 - **Validation**: Comprehensive input validation and error reporting
 
-## Project Structure
-
-```
-call_summarizer_agents/
-├── agents/                 # Agent implementations
-│   ├── base_agent.py      # Common agent functionality
-│   ├── transcription_agent.py
-│   ├── summarization_agent.py
-│   └── quality_score_agent.py
-├── config/                # Configuration management
-│   └── settings.py
-├── ui/                    # Web interface
-│   ├── streamlit_app.py
-│   └── styles.py
-├── utils/                 # Utilities and validation
-│   ├── constants.py
-│   ├── exceptions.py
-│   ├── helpers.py
-│   └── validation.py
-├── data/                  # Sample data
-│   └── sample_transcripts/
-├── main.py               # CLI entry point
-├── workflow.py           # LangGraph workflow
-└── pyproject.toml        # Dependencies and metadata
-```
+For detailed system architecture and project structure, see **[Architecture Documentation](docs/ARCHITECTURE.md)**.
 
 ## Development
 
-### Dependencies
-This project uses `uv` for fast, reliable dependency management:
+This project uses `uv` for dependency management. For detailed development commands, code quality tools, and testing procedures, see **[Development Guide](CLAUDE.md)**.
 
-```bash
-# Add new dependency
-uv add package-name
+## API Requirements
 
-# Add development dependency  
-uv add --dev package-name
+- **OpenAI API Key**: Required for LLM operations
+- **Deepgram API Key**: Required for audio transcription with speaker diarization
 
-# Sync dependencies
-uv sync
-```
-
-### Code Quality
-- **Linting**: `uv run ruff check .`
-- **Formatting**: `uv run ruff format .`
-- **Type Checking**: `uv run mypy .`
-
-### Testing
-```bash
-# Run tests (when implemented)
-uv run pytest tests/
-```
-
-### Logging
-Control logging output with the `LOG_LEVEL` environment variable:
-
-```bash
-# Show detailed debug information
-LOG_LEVEL=DEBUG uv run python main.py data/sample_transcripts/customer_support.txt
-
-# Show only important information (default)
-LOG_LEVEL=INFO uv run python main.py data/sample_transcripts/customer_support.txt
-
-# Show only warnings and errors
-LOG_LEVEL=WARNING uv run python main.py data/sample_transcripts/customer_support.txt
-```
-
-The application will display real-time logging during execution:
-```
-2025-08-14 09:15:23,456 - config.settings - INFO - Logging configured at INFO level
-2025-08-14 09:15:23,457 - workflow - INFO - Processing call test-abc123
-2025-08-14 09:15:24,123 - agents.base_agent.transcription - INFO - Transcription completed for call test-abc123
-```
-
-## API Keys
-
-### Required APIs
-- **OpenAI**: For LLM operations (summarization and quality scoring)
-- **Deepgram**: For audio transcription with speaker diarization
-
-### Optional APIs  
-- **LangSmith**: For debugging and tracing workflow execution
+See `.env.template` for configuration details.
 
 ## Supported File Types
 
@@ -220,6 +147,16 @@ Resolution: 9.0/10
 ==================================================
 ```
 
+For detailed API response formats and JSON examples, see **[API Documentation](docs/API.md#response-examples)**.
+
+## Documentation
+
+- **[API Documentation](docs/API.md)**: Data models, agent interfaces, and response schemas
+- **[Architecture Guide](docs/ARCHITECTURE.md)**: System design, workflow, and technical details  
+- **[Deployment Guide](docs/DEPLOYMENT.md)**: Production deployment options and configuration
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
+- **[Development Guide](CLAUDE.md)**: Internal development guidelines for AI assistants
+
 ## Contributing
 
 1. Fork the repository
@@ -235,6 +172,7 @@ Resolution: 9.0/10
 ## Support
 
 For issues and questions:
-- Check the documentation in `CLAUDE.md`
-- Review sample files in `data/sample_transcripts/`
-- Open an issue on GitHub
+- Check the **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** for common problems
+- Review documentation in `CLAUDE.md` and `docs/` directory
+- Examine sample files in `data/sample_transcripts/`
+- Open an issue on GitHub with detailed error information
