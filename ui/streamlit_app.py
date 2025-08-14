@@ -219,27 +219,62 @@ def render_header():
     </div>
     """, unsafe_allow_html=True)
 
-def render_quality_gauge(score, title, color="#3b82f6"):
-    """Render a quality score gauge using Plotly."""
+def render_quality_gauge(score, title, color="#3b82f6", dark_mode=None):
+    """Render a quality score gauge using Plotly with adaptive colors."""
+    # Auto-detect based on session state if not provided
+    if dark_mode is None:
+        dark_mode = st.session_state.get('dark_mode', True)  # Default to dark mode
+    
+    # Use adaptive colors based on theme
+    if dark_mode:
+        # Dark mode: light text on dark background
+        text_color = "#e2e8f0"  # Light gray
+        tick_color = "#94a3b8"  # Medium gray
+        bg_color = "rgba(30, 41, 59, 0.3)"  # Dark semi-transparent
+        steps_colors = [
+            {'range': [0, 4], 'color': "rgba(239, 68, 68, 0.3)"},  # Red
+            {'range': [4, 7], 'color': "rgba(251, 146, 60, 0.3)"},  # Orange
+            {'range': [7, 10], 'color': "rgba(34, 197, 94, 0.3)"}  # Green
+        ]
+    else:
+        # Light mode: dark text on light background
+        text_color = "#1e293b"  # Dark gray
+        tick_color = "#64748b"  # Medium dark gray
+        bg_color = "rgba(241, 245, 249, 0.5)"  # Light semi-transparent
+        steps_colors = [
+            {'range': [0, 4], 'color': "rgba(254, 226, 226, 0.8)"},  # Light red
+            {'range': [4, 7], 'color': "rgba(254, 243, 199, 0.8)"},  # Light orange
+            {'range': [7, 10], 'color': "rgba(220, 252, 231, 0.8)"}  # Light green
+        ]
+    
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = score,
         domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': title, 'font': {'size': 16, 'color': 'black'}},
-        number = {'font': {'size': 32, 'color': 'black'}, 'suffix': "/10"},
+        title = {'text': title, 'font': {'size': 16, 'color': text_color}},
+        number = {'font': {'size': 32, 'color': text_color}, 'suffix': "/10"},
         gauge = {
-            'steps': [
-                {'range': [0, 4], 'color': "#450a0a"},
-                {'range': [4, 7], 'color': "#451a03"},
-                {'range': [7, 10], 'color': "#052e16"}
-            ]
+            'axis': {
+                'range': [0, 10], 
+                'tickwidth': 2, 
+                'tickcolor': tick_color, 
+                'tickfont': {'size': 12, 'color': tick_color},
+                'tickmode': 'linear',
+                'tick0': 0,
+                'dtick': 2
+            },
+            'bar': {'color': color, 'thickness': 0.4},
+            'bgcolor': bg_color,
+            'borderwidth': 2,
+            'bordercolor': tick_color,
+            'steps': steps_colors
         }
     ))
     
     fig.update_layout(
         height=200,
         margin=dict(l=20, r=20, t=40, b=20),
-        font={'color': "white", 'family': "Arial", 'size': 12},
+        font={'color': text_color, 'family': "Arial", 'size': 12},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
@@ -249,11 +284,35 @@ def render_quality_gauge(score, title, color="#3b82f6"):
 def main():
     """Main Streamlit application."""
     
+    # Initialize dark mode in session state if not present
+    if 'dark_mode' not in st.session_state:
+        st.session_state.dark_mode = True  # Default to dark mode
+    
     # Add Font Awesome
     st.markdown(
         '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">',
         unsafe_allow_html=True
     )
+
+    # Add JavaScript for browser color scheme detection
+    st.markdown("""
+    <script>
+    // Detect browser's preferred color scheme
+    function detectColorScheme() {
+        const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        // Store in a hidden div that Streamlit can read
+        const indicator = document.getElementById('color-scheme-indicator');
+        if (indicator) {
+            indicator.textContent = isDark ? 'dark' : 'light';
+        }
+    }
+    
+    // Run on load and listen for changes
+    window.addEventListener('DOMContentLoaded', detectColorScheme);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', detectColorScheme);
+    </script>
+    <div id="color-scheme-indicator" style="display: none;"></div>
+    """, unsafe_allow_html=True)
 
     # Inject custom CSS
     inject_custom_css()
@@ -264,6 +323,19 @@ def main():
     # Sidebar for configuration
     with st.sidebar:
         st.markdown('<i class="fas fa-cog" style="margin-right: 8px; font-size: 1.2em;"></i>**Configuration**', unsafe_allow_html=True)
+        
+        # Theme toggle
+        st.markdown("---")
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown("**Theme**")
+        with col2:
+            theme_icon = "🌙" if st.session_state.dark_mode else "☀️"
+            if st.button(theme_icon, key="theme_toggle", help="Toggle dark/light mode"):
+                st.session_state.dark_mode = not st.session_state.dark_mode
+                st.rerun()
+        
+        st.markdown("---")
         
         openai_key = st.text_input(
             "OpenAI API Key",
@@ -544,7 +616,8 @@ def main():
                         fig_overall = render_quality_gauge(
                             result.quality_score.overall_score,
                             "Overall Score",
-                            "#3b82f6"
+                            "#3b82f6",
+                            dark_mode=st.session_state.dark_mode
                         )
                         st.plotly_chart(fig_overall, use_container_width=True)
                     
@@ -552,7 +625,8 @@ def main():
                         fig_empathy = render_quality_gauge(
                             result.quality_score.empathy_score,
                             "Empathy Score", 
-                            "#10b981"
+                            "#10b981",
+                            dark_mode=st.session_state.dark_mode
                         )
                         st.plotly_chart(fig_empathy, use_container_width=True)
                     
@@ -560,7 +634,8 @@ def main():
                         fig_resolution = render_quality_gauge(
                             result.quality_score.resolution_score,
                             "Resolution Score",
-                            "#f59e0b"
+                            "#f59e0b",
+                            dark_mode=st.session_state.dark_mode
                         )
                         st.plotly_chart(fig_resolution, use_container_width=True)
                     
