@@ -62,8 +62,8 @@ def process_file(file_path: str) -> None:
         
         if result.quality_score:
             print(f"\n📊 Quality Scores:")
-            print(f"Overall: {result.quality_score.overall_score:.1f}/10")
-            print(f"Empathy: {result.quality_score.empathy_score:.1f}/10")
+            print(f"Tone: {result.quality_score.tone_score:.1f}/10")
+            print(f"Professionalism: {result.quality_score.professionalism_score:.1f}/10")
             print(f"Resolution: {result.quality_score.resolution_score:.1f}/10")
             print(f"\n💬 Feedback: {result.quality_score.feedback}")
         
