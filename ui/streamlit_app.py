@@ -225,22 +225,9 @@ def render_quality_gauge(score, title, color="#3b82f6"):
         mode = "gauge+number",
         value = score,
         domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': title, 'font': {'size': 16, 'color': 'white'}},
-        number = {'font': {'size': 32, 'color': 'white'}, 'suffix': "/10"},
+        title = {'text': title, 'font': {'size': 16, 'color': 'black'}},
+        number = {'font': {'size': 32, 'color': 'black'}, 'suffix': "/10"},
         gauge = {
-            'axis': {
-                'range': [0, 10], 
-                'tickwidth': 2, 
-                'tickcolor': "white", 
-                'tickfont': {'size': 12, 'color': 'white'},
-                'tickmode': 'linear',
-                'tick0': 0,
-                'dtick': 2
-            },
-            'bar': {'color': color, 'thickness': 0.4},
-            'bgcolor': "#1e293b",
-            'borderwidth': 2,
-            'bordercolor': "#475569",
             'steps': [
                 {'range': [0, 4], 'color': "#450a0a"},
                 {'range': [4, 7], 'color': "#451a03"},
