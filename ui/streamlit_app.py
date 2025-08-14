@@ -610,25 +610,25 @@ def main():
                 # Quality Assessment tab content
                 if result.quality_score:
                     # Quality gauge visualizations
-                    col_overall, col_empathy, col_resolution = st.columns(3)
+                    col_tone, col_professionalism, col_resolution = st.columns(3)
                     
-                    with col_overall:
-                        fig_overall = render_quality_gauge(
-                            result.quality_score.overall_score,
-                            "Overall Score",
+                    with col_tone:
+                        fig_tone = render_quality_gauge(
+                            result.quality_score.tone_score,
+                            "Tone Score",
                             "#3b82f6",
                             dark_mode=st.session_state.dark_mode
                         )
-                        st.plotly_chart(fig_overall, use_container_width=True)
+                        st.plotly_chart(fig_tone, use_container_width=True)
                     
-                    with col_empathy:
-                        fig_empathy = render_quality_gauge(
-                            result.quality_score.empathy_score,
-                            "Empathy Score", 
+                    with col_professionalism:
+                        fig_professionalism = render_quality_gauge(
+                            result.quality_score.professionalism_score,
+                            "Professionalism", 
                             "#10b981",
                             dark_mode=st.session_state.dark_mode
                         )
-                        st.plotly_chart(fig_empathy, use_container_width=True)
+                        st.plotly_chart(fig_professionalism, use_container_width=True)
                     
                     with col_resolution:
                         fig_resolution = render_quality_gauge(

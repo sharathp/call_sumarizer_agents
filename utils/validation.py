@@ -35,8 +35,8 @@ class CallSummary(BaseModel):
 class QualityScore(BaseModel):
     """Simplified quality assessment."""
     
-    overall_score: float = Field(ge=1.0, le=10.0)
-    empathy_score: float = Field(ge=1.0, le=10.0)
+    tone_score: float = Field(ge=1.0, le=10.0)
+    professionalism_score: float = Field(ge=1.0, le=10.0)
     resolution_score: float = Field(ge=1.0, le=10.0)
     feedback: str
 
