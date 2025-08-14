@@ -10,9 +10,11 @@ from typing import Optional
 
 from langgraph.graph import END, StateGraph
 
-from agents import TranscriptionAgent
-from agents.summarization_agent_refactored import SummarizationAgent
-from agents.quality_score_agent_refactored import QualityScoringAgent
+from agents import (
+    QualityScoringAgent,
+    SummarizationAgent,
+    TranscriptionAgent,
+)
 from utils.validation import AgentState, ProcessingResult, CallInput, InputType
 
 

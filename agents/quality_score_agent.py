@@ -1,68 +1,161 @@
 """
-Simplified Quality Scoring Agent - Evaluates call quality.
+Refactored Quality Scoring Agent with improved structure.
 """
 
-import json
-import logging
-import os
 from typing import Optional, List
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
+from agents.base_agent import BaseAgent
+from config.settings import config, ModelProvider
+from utils.constants import DEFAULT_LLM_MODEL, DEFAULT_LLM_TEMPERATURE
+from utils.exceptions import QualityScoringError, LLMResponseError
+from utils.helpers import (
+    parse_llm_json_response,
+    format_speaker_conversation,
+    identify_likely_agent
+)
 from utils.validation import AgentState, QualityScore, SpeakerSegment
 
-logger = logging.getLogger(__name__)
 
-
-class QualityScoringAgent:
-    """Simplified agent for evaluating call quality."""
+class QualityScoringAgent(BaseAgent):
+    """Refactored agent for evaluating call quality."""
     
     def __init__(
         self,
-        model_provider: str = "openai",
+        model_provider: Optional[ModelProvider] = None,
         api_key: Optional[str] = None
     ):
-        self.model_provider = model_provider
+        super().__init__("quality_scoring")
         
-        if model_provider == "openai":
-            api_key = api_key or os.getenv("OPENAI_API_KEY")
+        # Use config defaults if not specified
+        self.model_provider = model_provider or config.model.llm_provider
+        api_key = api_key or config.api.openai_api_key
+        
+        if self.model_provider == ModelProvider.OPENAI:
             if not api_key:
-                raise ValueError("OpenAI API key is required.")
-            self.llm = ChatOpenAI(model="gpt-4-turbo-preview", temperature=0.2, api_key=api_key)
+                raise QualityScoringError("OpenAI API key is required.")
+            self.llm = ChatOpenAI(
+                model=config.model.llm_model or DEFAULT_LLM_MODEL,
+                temperature=0.2,  # Lower temperature for more consistent scoring
+                api_key=api_key
+            )
         else:
-            raise ValueError(f"Unsupported model provider: {model_provider}")
+            raise QualityScoringError(f"Unsupported model provider: {self.model_provider}")
     
     def process(self, state: AgentState) -> AgentState:
         """Evaluate call quality using speaker segments when available."""
         if not state.transcript_text and not state.speakers:
-            state.add_error("quality_scoring", "No transcript or speaker data available")
+            state.add_error(self.agent_name, "No transcript or speaker data available")
             return state
         
         try:
             # Use speaker segments for enhanced analysis if available
             if state.speakers:
-                quality_score = self._evaluate_quality_with_speakers(state.speakers, state.transcript_text)
-                logger.info(f"Quality evaluation with speaker analysis completed for call {state.call_id}")
+                quality_score = self._evaluate_quality_with_speakers(
+                    state.speakers,
+                    state.transcript_text
+                )
+                self.log_success(state, "Quality evaluation with speaker analysis completed")
             else:
                 # Fallback to transcript-only analysis
                 quality_score = self._evaluate_quality(state.transcript_text)
-                logger.info(f"Quality evaluation with transcript fallback completed for call {state.call_id}")
+                self.log_success(state, "Quality evaluation with transcript fallback completed")
                 
             state.quality_score = quality_score
+            return state
             
         except Exception as e:
-            logger.error(f"Quality scoring failed: {str(e)}")
-            state.add_error("quality_scoring", str(e))
-        
-        return state
+            return self.handle_error(state, e, "Quality scoring failed")
     
     def _evaluate_quality(self, transcript: str) -> QualityScore:
         """Evaluate call quality using LLM with structured rubric."""
-        system_prompt = (
-            "You are an expert call center quality analyst. Evaluate this call transcript "
-            "using the following structured rubric."
-"""
+        system_prompt = self._get_basic_rubric()
+        human_prompt = f"Evaluate this call transcript using the structured rubric:\n\n{transcript}"
+        
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_prompt)
+        ]
+        
+        try:
+            response = self.llm.invoke(messages)
+            content = response.content if hasattr(response, 'content') else str(response)
+            
+            # Use helper function for JSON parsing with fallback
+            fallback_score = self._get_fallback_score()
+            
+            try:
+                quality_dict = parse_llm_json_response(content)
+            except Exception as parse_error:
+                self.logger.warning(f"Using fallback score due to: {parse_error}")
+                quality_dict = fallback_score
+            
+            return QualityScore(**quality_dict)
+                
+        except Exception as e:
+            raise LLMResponseError(f"Failed to evaluate quality: {str(e)}")
+    
+    def _evaluate_quality_with_speakers(
+        self,
+        speakers: List[SpeakerSegment],
+        transcript_fallback: str
+    ) -> QualityScore:
+        """Evaluate quality using speaker segments for enhanced analysis."""
+        # Format conversation and identify agent
+        conversation = format_speaker_conversation(speakers)
+        agent_utterances = self._extract_agent_utterances(speakers)
+        
+        system_prompt = self._get_speaker_aware_rubric()
+        human_prompt = self._build_speaker_aware_prompt(
+            conversation,
+            agent_utterances,
+            transcript_fallback
+        )
+        
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_prompt)
+        ]
+        
+        try:
+            response = self.llm.invoke(messages)
+            content = response.content if hasattr(response, 'content') else str(response)
+            
+            quality_dict = parse_llm_json_response(content)
+            return QualityScore(**quality_dict)
+                
+        except (LLMResponseError, Exception) as e:
+            self.logger.warning(
+                f"Speaker-aware evaluation failed: {e}, falling back to transcript-only"
+            )
+            return self._evaluate_quality(transcript_fallback)
+    
+    def _extract_agent_utterances(self, speakers: List[SpeakerSegment]) -> str:
+        """Extract and format agent utterances for focused evaluation."""
+        if not speakers:
+            return "Agent utterances could not be identified."
+        
+        # Use helper to identify likely agent
+        speaker_list = [s for s in speakers]
+        likely_agent = identify_likely_agent(speaker_list)
+        
+        if not likely_agent:
+            return "Agent utterances could not be identified."
+        
+        agent_utterances = []
+        for segment in speakers:
+            if segment.speaker == likely_agent:
+                timestamp = f"[{segment.start:.1f}s]"
+                agent_utterances.append(f"{timestamp} {segment.text}")
+        
+        return "\n".join(agent_utterances) if agent_utterances else "No agent utterances found."
+    
+    @staticmethod
+    def _get_basic_rubric() -> str:
+        """Get the basic quality evaluation rubric."""
+        return """You are an expert call center quality analyst. Evaluate this call transcript using the following structured rubric.
 
 SCORING RUBRIC (1-10 scale for each dimension):
 
@@ -99,63 +192,12 @@ Respond in JSON format only. Do not use code blocks, backticks, or any markdown 
     "professionalism_score": 7.5,
     "resolution_score": 9.0,
     "feedback": "Brief summary highlighting specific strengths and areas for improvement based on the rubric"
-}""")
-
-        human_prompt = f"Evaluate this call transcript using the structured rubric:\n\n{transcript}"
-
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=human_prompt)
-        ]
-
-        try:
-            response = self.llm.invoke(messages)
-            content = response.content if hasattr(response, 'content') else str(response)
-
-            # Clean content and try to extract JSON
-            content = content.strip()
-
-            # Try to find JSON in the response
-            if content.startswith('```json'):
-                content = content.replace('```json', '').replace('```', '').strip()
-            elif content.startswith('```'):
-                content = content.replace('```', '').strip()
-
-            # Parse JSON response
-            quality_dict = json.loads(content)
-            return QualityScore(**quality_dict)
-
-        except json.JSONDecodeError as e:
-            logger.error("JSON parsing error: %s, Content: %s", str(e), content[:200])
-            # Return default scores as fallback
-            return QualityScore(
-                tone_score=5.0,
-                professionalism_score=5.0,
-                resolution_score=5.0,
-                feedback="Unable to evaluate quality due to processing error."
-            )
-        except Exception as e:
-            logger.error("Quality evaluation error: %s", str(e))
-            # Return default scores as fallback
-            return QualityScore(
-                tone_score=5.0,
-                professionalism_score=5.0,
-                resolution_score=5.0,
-                feedback="Unable to evaluate quality due to processing error."
-            )
+}"""
     
-    def _evaluate_quality_with_speakers(self, speakers: List[SpeakerSegment], transcript_fallback: str) -> QualityScore:
-        """Evaluate call quality using speaker segments for enhanced analysis."""
-        # Format conversation with speaker labels
-        conversation = self._format_speaker_conversation(speakers)
-        
-        # Identify agent utterances for focused evaluation
-        agent_utterances = self._identify_agent_utterances(speakers)
-        
-        system_prompt = (
-            "You are an expert call center quality analyst. Evaluate this call using speaker-identified dialogue "
-            "to provide more accurate agent performance assessment."
-        """
+    @staticmethod
+    def _get_speaker_aware_rubric() -> str:
+        """Get the enhanced speaker-aware quality evaluation rubric."""
+        return """You are an expert call center quality analyst. Evaluate this call using speaker-identified dialogue to provide more accurate agent performance assessment.
 
 ENHANCED SCORING RUBRIC (1-10 scale for each dimension):
 
@@ -200,9 +242,16 @@ Respond in JSON format only. Do not use code blocks, backticks, or any markdown 
     "professionalism_score": 7.5,
     "resolution_score": 9.0,
     "feedback": "Detailed feedback highlighting specific agent strengths and areas for improvement based on the speaker-aware analysis"
-}""")
-
-        human_prompt = f"""Evaluate this call using the speaker-identified dialogue below:
+}"""
+    
+    @staticmethod
+    def _build_speaker_aware_prompt(
+        conversation: str,
+        agent_utterances: str,
+        transcript_fallback: str
+    ) -> str:
+        """Build the human prompt for speaker-aware quality evaluation."""
+        return f"""Evaluate this call using the speaker-identified dialogue below:
 
 CONVERSATION FLOW:
 {conversation}
@@ -211,65 +260,13 @@ AGENT UTTERANCES (for focused evaluation):
 {agent_utterances}
 
 Full transcript (if needed for context): {transcript_fallback[:500]}..."""
-
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=human_prompt)
-        ]
-
-        try:
-            response = self.llm.invoke(messages)
-            content = response.content if hasattr(response, 'content') else str(response)
-
-            # Clean content and try to extract JSON
-            content = content.strip()
-
-            # Try to find JSON in the response
-            if content.startswith('```json'):
-                content = content.replace('```json', '').replace('```', '').strip()
-            elif content.startswith('```'):
-                content = content.replace('```', '').strip()
-
-            # Parse JSON response
-            quality_dict = json.loads(content)
-            return QualityScore(**quality_dict)
-
-        except json.JSONDecodeError as e:
-            logger.error("JSON parsing error in speaker evaluation: %s, Content: %s", str(e), content[:200])
-            # Fallback to transcript-only evaluation
-            logger.info("Falling back to transcript-only evaluation")
-            return self._evaluate_quality(transcript_fallback)
-        except Exception as e:
-            logger.error("Speaker-aware quality evaluation error: %s", str(e))
-            # Fallback to transcript-only evaluation
-            logger.info("Falling back to transcript-only evaluation")
-            return self._evaluate_quality(transcript_fallback)
     
-    def _format_speaker_conversation(self, speakers: List[SpeakerSegment]) -> str:
-        """Format speaker segments into a readable conversation."""
-        conversation_lines = []
-        for segment in speakers:
-            timestamp = f"[{segment.start:.1f}s-{segment.end:.1f}s]"
-            conversation_lines.append(f"{segment.speaker} {timestamp}: {segment.text}")
-        return "\n".join(conversation_lines)
-    
-    def _identify_agent_utterances(self, speakers: List[SpeakerSegment]) -> str:
-        """Extract and format agent utterances for focused evaluation."""
-        # Simple heuristic: assume Speaker 0 is often the agent (can be improved with role detection)
-        agent_utterances = []
-        
-        # Count speakers to make intelligent guess about agent
-        speaker_counts = {}
-        for segment in speakers:
-            speaker_counts[segment.speaker] = speaker_counts.get(segment.speaker, 0) + 1
-        
-        # Assume agent is the speaker who talks most (typical in call centers)
-        if speaker_counts:
-            likely_agent = max(speaker_counts.items(), key=lambda x: x[1])[0]
-            
-            for segment in speakers:
-                if segment.speaker == likely_agent:
-                    timestamp = f"[{segment.start:.1f}s]"
-                    agent_utterances.append(f"{timestamp} {segment.text}")
-        
-        return "\n".join(agent_utterances) if agent_utterances else "Agent utterances could not be identified."
+    @staticmethod
+    def _get_fallback_score() -> dict:
+        """Get a fallback quality score structure."""
+        return {
+            "tone_score": 5.0,
+            "professionalism_score": 5.0,
+            "resolution_score": 5.0,
+            "feedback": "Unable to evaluate quality due to processing error."
+        }
