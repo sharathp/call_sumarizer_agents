@@ -54,7 +54,7 @@ class SummarizationAgent:
         """Generate summary using LLM."""
         system_prompt = """You are a call center analyst. Create a structured summary of this call transcript.
 
-Respond in JSON format:
+Respond in JSON format only. Do not use code blocks, backticks, or any markdown formatting. Your response must be pure JSON that starts with { and ends with }:
 {
     "summary": "Brief executive summary (1-2 sentences)",
     "key_points": ["List of 3-5 key discussion points"],

@@ -86,7 +86,7 @@ SCORING RUBRIC (1-10 scale for each dimension):
 
    Evaluate: Problem-solving effectiveness, issue closure, customer satisfaction indicators
 
-Respond in JSON format:
+Respond in JSON format only. Do not use code blocks, backticks, or any markdown formatting. Your response must be pure JSON that starts with { and ends with }:
 {
     "tone_score": 8.0,
     "professionalism_score": 7.5,
