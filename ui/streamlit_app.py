@@ -571,14 +571,39 @@ def main():
             status_icon = status_icons.get(result.status, '<i class="fas fa-question-circle"></i>')
             st.markdown(f'<div style="padding: 0.75rem; background-color: #dbeafe; border: 1px solid #3b82f6; border-radius: 0.5rem; color: #1e40af;">{status_icon} Processing {result.status.upper()} ({result.processing_time_seconds:.1f}s)</div>', unsafe_allow_html=True)
             
+            # Determine summary tab label based on sentiment
+            summary_tab_label = "Summary"
+            if result.summary and hasattr(result.summary, 'sentiment'):
+                sentiment_emojis = {
+                    "positive": "😊",
+                    "neutral": "😐",
+                    "negative": "😔"
+                }
+                emoji = sentiment_emojis.get(result.summary.sentiment.lower(), "")
+                if emoji:
+                    summary_tab_label = f"{emoji} Summary"
+            
             # Tabbed interface
             tab1, tab2, tab3 = st.tabs([
-                "📝 Call Summary",
-                "📊 Quality Assessment", 
-                "📄 Transcript"
+                "📄 Transcript",
+                summary_tab_label,
+                "📊 Quality Scores"
             ])
             
             with tab1:
+                # Transcript tab content
+                if result.transcript_text:
+                    st.text_area(
+                        "Call Transcript",
+                        value=result.transcript_text,
+                        height=400,
+                        disabled=True,
+                        label_visibility="collapsed"
+                    )
+                else:
+                    st.info("No transcript available for this call.")
+            
+            with tab2:
                 # Call Summary tab content
                 if result.summary:
                     st.write(result.summary.summary)
@@ -588,25 +613,10 @@ def main():
                         st.markdown('**<i class="fas fa-key" style="margin-right: 8px;"></i>Key Points:**', unsafe_allow_html=True)
                         for point in result.summary.key_points:
                             st.markdown(f"• {point}")
-                    
-                    # Sentiment and Outcome
-                    col_sentiment, col_outcome = st.columns(2)
-                    with col_sentiment:
-                        # Fix sentiment emoji
-                        sentiment_emojis = {
-                            "positive": '😊',
-                            "neutral": '😐', 
-                            "negative": '😔'
-                        }
-                        emoji = sentiment_emojis.get(result.summary.sentiment.lower(), '😐')
-                        st.metric("Sentiment", f'{emoji} {result.summary.sentiment.title()}')
-                    
-                    with col_outcome:
-                        st.metric("Outcome", f'🎯 {result.summary.outcome}')
                 else:
                     st.info("No summary available for this call.")
             
-            with tab2:
+            with tab3:
                 # Quality Assessment tab content
                 if result.quality_score:
                     # Quality gauge visualizations
@@ -645,13 +655,6 @@ def main():
                         st.write(result.quality_score.feedback)
                 else:
                     st.info("No quality assessment available for this call.")
-            
-            with tab3:
-                # Transcript tab content
-                if result.transcript_text:
-                    st.text(result.transcript_text)
-                else:
-                    st.info("No transcript available for this call.")
             
             # Errors (show in all tabs if present)
             if result.errors:
