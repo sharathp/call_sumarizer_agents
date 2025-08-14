@@ -53,7 +53,7 @@ class QualityScoringAgent:
     def _evaluate_quality(self, transcript: str) -> QualityScore:
         """Evaluate call quality using LLM with structured rubric."""
         system_prompt = (
-            "You are a call center quality analyst. Evaluate this call transcript "
+            "You are an expert call center quality analyst. Evaluate this call transcript "
             "using the following structured rubric."
 """
 
