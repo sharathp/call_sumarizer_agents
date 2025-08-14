@@ -40,6 +40,7 @@ Create a `.env` file with your API keys:
 OPENAI_API_KEY=your_openai_key_here
 DEEPGRAM_API_KEY=your_deepgram_key_here
 LANGCHAIN_API_KEY=your_langsmith_key_here  # Optional, for debugging traces
+LOG_LEVEL=INFO  # Optional, controls logging verbosity (DEBUG, INFO, WARNING, ERROR)
 ```
 
 ### Usage
@@ -144,6 +145,27 @@ uv sync
 ```bash
 # Run tests (when implemented)
 uv run pytest tests/
+```
+
+### Logging
+Control logging output with the `LOG_LEVEL` environment variable:
+
+```bash
+# Show detailed debug information
+LOG_LEVEL=DEBUG uv run python main.py data/sample_transcripts/customer_support.txt
+
+# Show only important information (default)
+LOG_LEVEL=INFO uv run python main.py data/sample_transcripts/customer_support.txt
+
+# Show only warnings and errors
+LOG_LEVEL=WARNING uv run python main.py data/sample_transcripts/customer_support.txt
+```
+
+The application will display real-time logging during execution:
+```
+2025-08-14 09:15:23,456 - config.settings - INFO - Logging configured at INFO level
+2025-08-14 09:15:23,457 - workflow - INFO - Processing call test-abc123
+2025-08-14 09:15:24,123 - agents.base_agent.transcription - INFO - Transcription completed for call test-abc123
 ```
 
 ## API Keys

@@ -2,7 +2,9 @@
 Centralized configuration management.
 """
 
+import logging
 import os
+import sys
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
@@ -123,3 +125,42 @@ class AppConfig:
 
 # Global configuration instance
 config = AppConfig.from_env()
+
+
+def setup_logging() -> None:
+    """Configure logging for console output with proper formatting."""
+    from utils.constants import LOG_FORMAT, LOG_DATE_FORMAT
+    
+    # Get log level from config
+    log_level = getattr(logging, config.log_level.upper(), logging.INFO)
+    
+    # Remove any existing handlers to avoid duplicates
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    
+    # Create console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(log_level)
+    
+    # Create formatter
+    formatter = logging.Formatter(
+        fmt=LOG_FORMAT,
+        datefmt=LOG_DATE_FORMAT
+    )
+    console_handler.setFormatter(formatter)
+    
+    # Configure root logger
+    root_logger.setLevel(log_level)
+    root_logger.addHandler(console_handler)
+    
+    # Suppress overly verbose third-party logs
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("openai").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("langsmith").setLevel(logging.WARNING)
+    
+    # Log startup message
+    logger = logging.getLogger(__name__)
+    logger.info(f"Logging configured at {config.log_level} level")
