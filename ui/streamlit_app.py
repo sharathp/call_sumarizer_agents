@@ -14,6 +14,10 @@ from workflow import CallCenterWorkflow
 # Load environment variables
 load_dotenv()
 
+# Configure logging for UI
+from config.settings import setup_logging
+setup_logging()
+
 # Page configuration
 st.set_page_config(
     page_title="AI Call Center Assistant",

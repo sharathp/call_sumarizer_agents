@@ -15,6 +15,10 @@ from workflow import CallCenterWorkflow
 # Load environment variables
 load_dotenv()
 
+# Configure logging
+from config.settings import setup_logging
+setup_logging()
+
 
 def process_file(file_path: str) -> None:
     """Process a single file."""
