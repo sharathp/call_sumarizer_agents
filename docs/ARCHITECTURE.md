@@ -61,7 +61,6 @@ class AgentState(BaseModel):
     call_id: str                           # Unique identifier
     input_data: CallInput                  # Original input
     transcript_text: Optional[str]         # Text from transcription
-    speakers: List[SpeakerSegment]         # Speaker diarization data
     summary: Optional[CallSummary]         # Summary from summarization agent
     quality_score: Optional[QualityScore]  # Scores from quality agent
     errors: List[Dict[str, Any]]           # Error accumulation
@@ -105,24 +104,20 @@ def _route_after_transcription(self, state: AgentState) -> str:
 
 ### TranscriptionAgent
 
-**Purpose:** Convert audio input to text with speaker identification
+**Purpose:** Convert audio input to text using OpenAI Whisper
 
 **Technology Stack:**
-- Primary: Deepgram API (with speaker diarization)
-- Fallback: OpenAI Whisper API
+- OpenAI Whisper API for speech-to-text
 - Audio format support: MP3, WAV, M4A, OGG, WebM
 
 **Processing Pipeline:**
 1. Validate audio input format
-2. Attempt transcription with Deepgram using utterance-level diarization
-3. Extract pre-grouped speaker segments (no word-level parsing needed)
-4. On failure, fallback to OpenAI Whisper
-5. Return transcript text and speaker segments
+2. Convert audio to text using OpenAI Whisper
+3. Return transcript text
 
 **Key Features:**
-- Automatic speaker identification
 - High-accuracy transcription
-- Multiple provider fallback
+- Simple, reliable single-provider architecture
 - Audio format validation
 
 ### SummarizationAgent
@@ -135,14 +130,14 @@ def _route_after_transcription(self, state: AgentState) -> str:
 - Output Validation: Pydantic models
 
 **Processing Pipeline:**
-1. Analyze transcript text and speaker data
+1. Analyze transcript text
 2. Create context-aware prompts
 3. Generate structured summary via LLM
 4. Extract key points and sentiment
 5. Determine call outcome classification
 
 **Prompt Engineering:**
-- Speaker-aware context when available
+- Transcript-focused analysis
 - Structured output formatting
 - Domain-specific call center terminology
 - Sentiment and outcome classification
@@ -210,7 +205,7 @@ ALLOW_PARTIAL_RESULTS = True
 ### Fallback Mechanisms
 
 1. **Transcription Fallbacks:**
-   - Deepgram → OpenAI Whisper → Manual text input
+   - OpenAI Whisper → Manual text input
 
 2. **Model Fallbacks:**
    - GPT-4 → GPT-3.5-turbo (configurable)
@@ -226,7 +221,6 @@ ALLOW_PARTIAL_RESULTS = True
 # config/settings.py
 class Settings:
     openai_api_key: Optional[str]
-    deepgram_api_key: Optional[str]
     langchain_api_key: Optional[str]
     log_level: str = "INFO"
     max_retries: int = 2
@@ -270,8 +264,7 @@ DEFAULT_MODELS = {
 ### External APIs
 
 ```python
-# Transcription providers
-DEEPGRAM_ENDPOINT = "https://api.deepgram.com/v1/listen"
+# Transcription provider
 OPENAI_AUDIO_ENDPOINT = "https://api.openai.com/v1/audio/transcriptions"
 
 # LLM providers  

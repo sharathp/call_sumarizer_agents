@@ -41,7 +41,6 @@ class AgentState(BaseModel):
     call_id: str
     input_data: CallInput
     transcript_text: Optional[str] = None
-    speakers: List[SpeakerSegment] = []
     summary: Optional[CallSummary] = None
     quality_score: Optional[QualityScore] = None
     errors: List[Dict[str, Any]] = []
@@ -51,18 +50,6 @@ class AgentState(BaseModel):
         """Add an error to the state with timestamp."""
 ```
 
-### SpeakerSegment
-
-Individual speaker segment with timing information from transcription.
-
-```python
-class SpeakerSegment(BaseModel):
-    speaker: str                    # "Speaker 1", "Speaker 2", etc.
-    text: str                      # Spoken text content
-    start: float                   # Start time in seconds
-    end: float                     # End time in seconds
-    confidence: Optional[float] = None  # Transcription confidence (0-1)
-```
 
 ### CallSummary
 
@@ -97,7 +84,6 @@ class ProcessingResult(BaseModel):
     call_id: str
     status: Literal["success", "partial", "failed"]
     transcript_text: Optional[str] = None
-    speakers: List[SpeakerSegment] = []
     summary: Optional[CallSummary] = None
     quality_score: Optional[QualityScore] = None
     errors: List[Dict[str, Any]] = []
@@ -129,35 +115,28 @@ class BaseAgent(ABC):
 
 ### TranscriptionAgent
 
-Converts audio input to text with speaker diarization.
+Converts audio input to text using OpenAI Whisper.
 
 **Input:** AgentState with audio content in `input_data.content`  
-**Output:** AgentState with populated `transcript_text` and `speakers`
+**Output:** AgentState with populated `transcript_text`
 
-**Providers:**
-- Primary: Deepgram API (with speaker diarization)
-- Fallback: OpenAI Whisper API
+**Provider:**
+- OpenAI Whisper API
 
 **Key Methods:**
 ```python
 def process(self, state: AgentState) -> AgentState:
-    """Convert audio to transcript with speaker segments."""
+    """Convert audio to transcript text."""
 
-def _transcribe_with_diarization(self, audio_content: bytes) -> tuple[str, List[SpeakerSegment]]:
-    """Transcribe using Deepgram with utterance-level speaker diarization."""
-
-def _extract_transcript_and_speakers(self, response) -> tuple[str, List[SpeakerSegment]]:
-    """Extract transcript and speaker segments from Deepgram response."""
-
-def _fallback_transcribe_audio(self, audio_content: bytes) -> str:
-    """Fallback transcription using OpenAI Whisper."""
+def _transcribe_audio(self, audio_content: bytes) -> str:
+    """Transcribe using OpenAI Whisper API."""
 ```
 
 ### SummarizationAgent
 
 Generates structured summaries from transcripts.
 
-**Input:** AgentState with `transcript_text` and optional `speakers`  
+**Input:** AgentState with `transcript_text`  
 **Output:** AgentState with populated `summary`
 
 **Key Methods:**
@@ -165,8 +144,8 @@ Generates structured summaries from transcripts.
 def process(self, state: AgentState) -> AgentState:
     """Generate summary from transcript."""
 
-def _create_summary_prompt(self, transcript: str, speakers: List[SpeakerSegment]) -> str:
-    """Create context-aware prompt for summarization."""
+def _generate_summary(self, transcript: str) -> CallSummary:
+    """Create structured summary from transcript text."""
 ```
 
 ### QualityScoringAgent
@@ -201,7 +180,6 @@ class CallCenterWorkflow:
     def __init__(
         self,
         openai_api_key: Optional[str] = None,
-        deepgram_api_key: Optional[str] = None
     )
     
     def process_call(self, call_input: CallInput) -> ProcessingResult:
@@ -262,15 +240,6 @@ See `.env.template` for complete configuration options. For setup instructions, 
     "call_id": "call_20250814_103045_abc123",
     "status": "success",
     "transcript_text": "Customer: Hello, I'm having trouble with my password reset...",
-    "speakers": [
-        {
-            "speaker": "Speaker 1", 
-            "text": "Hello, I'm having trouble with my password reset",
-            "start": 0.5,
-            "end": 3.2,
-            "confidence": 0.95
-        }
-    ],
     "summary": {
         "summary": "Customer contacted support regarding password reset issues...",
         "key_points": [

@@ -143,11 +143,6 @@ def inject_custom_css():
         overflow-y: auto;
     }
     
-    .speaker-label {
-        font-weight: 700;
-        color: #1e40af;
-        margin-right: 0.5rem;
-    }
     
     /* Button styling */
     .stButton > button {
@@ -341,18 +336,11 @@ def main():
         
         st.markdown("---")
         
-        deepgram_key = st.text_input(
-            "Deepgram API Key",
-            type="password",
-            value=os.getenv('DEEPGRAM_API_KEY', ''),
-            help="Required for transcription with speaker diarization"
-        )
-        
         openai_key = st.text_input(
             "OpenAI API Key",
             type="password",
             value=os.getenv('OPENAI_API_KEY', ''),
-            help="Required for summarization and quality scoring, optional fallback for transcription"
+            help="Required for transcription (Whisper), summarization, and quality scoring"
         )
         
         langsmith_key = st.text_input(
@@ -366,10 +354,6 @@ def main():
             os.environ["LANGCHAIN_API_KEY"] = langsmith_key
             os.environ["LANGCHAIN_TRACING_V2"] = "true"
         
-        if not deepgram_key:
-            st.error("Please provide your Deepgram API key for transcription with speaker diarization")
-            return
-            
         if not openai_key:
             st.error("Please provide your OpenAI API key for LLM operations")
             return
@@ -425,8 +409,7 @@ def main():
                 try:
                     # Create workflow
                     workflow = CallCenterWorkflow(
-                        openai_api_key=openai_key,
-                        deepgram_api_key=deepgram_key
+                        openai_api_key=openai_key
                     )
                     
                     # Determine input type and content
@@ -632,115 +615,13 @@ def main():
             with tab1:
                 # Transcript tab content
                 if result.transcript_text:
-                    # Check if we have speaker segments for enhanced display
-                    # Debug: Show speaker info
-                    if hasattr(result, 'speakers'):
-                        if result.speakers:
-                            st.success(f"✅ Found {len(result.speakers)} speaker segments!")
-                        else:
-                            st.info("ℹ️ No speaker segments found - showing raw transcript")
-                    else:
-                        st.warning("⚠️ No speakers attribute in result")
-                    
-                    if hasattr(result, 'speakers') and result.speakers:
-                        st.markdown("### 🗣️ Speaker-Segmented Conversation")
-                        
-                        # Show speaker statistics
-                        speaker_stats = {}
-                        total_duration = 0
-                        for segment in result.speakers:
-                            speaker = segment.speaker
-                            duration = segment.end - segment.start
-                            total_duration += duration
-                            
-                            if speaker not in speaker_stats:
-                                speaker_stats[speaker] = {"count": 0, "duration": 0}
-                            speaker_stats[speaker]["count"] += 1
-                            speaker_stats[speaker]["duration"] += duration
-                        
-                        # Display speaker summary
-                        cols = st.columns(len(speaker_stats))
-                        for i, (speaker, stats) in enumerate(speaker_stats.items()):
-                            with cols[i]:
-                                talk_percentage = (stats["duration"] / total_duration * 100) if total_duration > 0 else 0
-                                st.metric(
-                                    label=f"🗣️ {speaker}",
-                                    value=f"{stats['count']} segments",
-                                    delta=f"{talk_percentage:.1f}% talk time"
-                                )
-                        
-                        # Display speaker segments in a formatted way
-                        transcript_html = ""
-                        for i, segment in enumerate(result.speakers):
-                            # Determine speaker color
-                            speaker_num = segment.speaker.replace("Speaker ", "")
-                            colors = ["#e3f2fd", "#f3e5f5", "#e8f5e8", "#fff3e0", "#fce4ec"]
-                            bg_color = colors[int(speaker_num) % len(colors)]
-                            
-                            # Format timing
-                            start_time = f"{segment.start:.1f}s"
-                            end_time = f"{segment.end:.1f}s"
-                            
-                            # Create speaker segment HTML
-                            transcript_html += f"""
-                            <div style="
-                                margin: 8px 0; 
-                                padding: 12px; 
-                                background-color: {bg_color}; 
-                                border-left: 4px solid #1976d2; 
-                                border-radius: 6px;
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            ">
-                                <div style="
-                                    display: flex; 
-                                    justify-content: space-between; 
-                                    align-items: center; 
-                                    margin-bottom: 6px;
-                                ">
-                                    <strong style="color: #1976d2; font-size: 14px;">
-                                        🗣️ {segment.speaker}
-                                    </strong>
-                                    <span style="
-                                        font-size: 12px; 
-                                        color: #666; 
-                                        background: rgba(255,255,255,0.7); 
-                                        padding: 2px 8px; 
-                                        border-radius: 12px;
-                                    ">
-                                        {start_time} - {end_time}
-                                    </span>
-                                </div>
-                                <div style="
-                                    line-height: 1.5; 
-                                    color: #333;
-                                    font-size: 14px;
-                                ">
-                                    {segment.text}
-                                </div>
-                            </div>
-                            """
-                        
-                        # Display the formatted conversation
-                        st.markdown(transcript_html, unsafe_allow_html=True)
-                        
-                        # Show raw transcript as expandable section
-                        with st.expander("📄 View Raw Transcript"):
-                            st.text_area(
-                                "Full Transcript",
-                                value=result.transcript_text,
-                                height=300,
-                                disabled=True,
-                                label_visibility="collapsed"
-                            )
-                    else:
-                        # Fallback to regular transcript display
-                        st.text_area(
-                            "Call Transcript",
-                            value=result.transcript_text,
-                            height=400,
-                            disabled=True,
-                            label_visibility="collapsed"
-                        )
+                    st.text_area(
+                        "Call Transcript",
+                        value=result.transcript_text,
+                        height=400,
+                        disabled=True,
+                        label_visibility="collapsed"
+                    )
                 else:
                     st.info("No transcript available for this call.")
             
