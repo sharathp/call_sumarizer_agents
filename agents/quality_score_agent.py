@@ -186,12 +186,16 @@ SCORING RUBRIC (1-10 scale for each dimension):
 
    Evaluate: Problem-solving effectiveness, issue closure, customer satisfaction indicators
 
-Respond in JSON format only. Do not use code blocks, backticks, or any markdown formatting. Your response must be pure JSON that starts with { and ends with }:
+Respond in JSON format only. Do not use code blocks, backticks, or any markdown formatting. Your response must be pure JSON that starts with { and ends with }.
+
+IMPORTANT: The "feedback" field must be a single string (not an object or dictionary), providing a brief summary of strengths and areas for improvement.
+
+Example format:
 {
     "tone_score": 8.0,
     "professionalism_score": 7.5,
     "resolution_score": 9.0,
-    "feedback": "Brief summary highlighting specific strengths and areas for improvement based on the rubric"
+    "feedback": "Agent demonstrated excellent empathy and patience when handling customer frustration. Successfully resolved the password reset issue. Could improve by offering additional self-service options for future reference."
 }"""
     
     @staticmethod
@@ -236,12 +240,16 @@ CONVERSATION ANALYSIS:
 - Consider customer sentiment changes throughout the call
 - Evaluate agent's ability to handle customer concerns
 
-Respond in JSON format only. Do not use code blocks, backticks, or any markdown formatting. Your response must be pure JSON that starts with { and ends with }:
+Respond in JSON format only. Do not use code blocks, backticks, or any markdown formatting. Your response must be pure JSON that starts with { and ends with }.
+
+IMPORTANT: The "feedback" field must be a single string (not an object or dictionary), providing detailed feedback on agent performance.
+
+Example format:
 {
     "tone_score": 8.0,
     "professionalism_score": 7.5,
     "resolution_score": 9.0,
-    "feedback": "Detailed feedback highlighting specific agent strengths and areas for improvement based on the speaker-aware analysis"
+    "feedback": "Agent maintained exceptional tone throughout, showing patience with frustrated customer. Strong product knowledge evident in explaining the password reset process. Successfully resolved the issue with clear instructions. Could enhance service by proactively offering self-service resources for future reference."
 }"""
     
     @staticmethod
