@@ -113,6 +113,27 @@ ffmpeg -i input.wav -b:a 128k output.mp3
 ffmpeg -i input.wav -f segment -segment_time 300 -c copy output_%03d.wav
 ```
 
+**Problem:** `Cannot instantiate typing.Union` error with Deepgram
+```python
+# This error occurs when using typed Deepgram SDK classes
+# Solution: Use dictionary format for options instead
+
+# Instead of:
+from deepgram import PrerecordedOptions, FileSource
+options = PrerecordedOptions(...)  # May cause Union type error
+
+# Use:
+options = {
+    "model": "nova-2",
+    "smart_format": True,
+    "punctuate": True,
+    "diarize": True,
+    "utterances": True,  # For utterance-level segments
+    "language": "en-US"
+}
+payload = {"buffer": audio_data}
+```
+
 ## Runtime Errors
 
 ### Application Startup Issues

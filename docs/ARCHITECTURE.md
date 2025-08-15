@@ -114,8 +114,8 @@ def _route_after_transcription(self, state: AgentState) -> str:
 
 **Processing Pipeline:**
 1. Validate audio input format
-2. Attempt transcription with Deepgram
-3. Parse speaker diarization data
+2. Attempt transcription with Deepgram using utterance-level diarization
+3. Extract pre-grouped speaker segments (no word-level parsing needed)
 4. On failure, fallback to OpenAI Whisper
 5. Return transcript text and speaker segments
 
