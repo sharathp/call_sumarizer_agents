@@ -81,7 +81,7 @@ class ModelConfig:
     """Model configuration settings."""
     # LLM settings
     llm_model: str = "gpt-4-turbo-preview"
-    llm_temperature: float = 0.3
+    llm_temperature: float = 0
     llm_provider: ModelProvider = ModelProvider.OPENAI
     
     # Transcription settings

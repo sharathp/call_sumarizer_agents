@@ -38,7 +38,7 @@ class QualityScoringAgent(BaseAgent):
                 raise QualityScoringError("OpenAI API key is required.")
             self.llm = ChatOpenAI(
                 model=config.model.llm_model or DEFAULT_LLM_MODEL,
-                temperature=0.2,  # Lower temperature for more consistent scoring
+                temperature=0,  # Lower temperature for more consistent scoring
                 api_key=api_key
             )
         else:
@@ -265,8 +265,8 @@ Full transcript (if needed for context): {transcript_fallback[:500]}..."""
     def _get_fallback_score() -> dict:
         """Get a fallback quality score structure."""
         return {
-            "tone_score": 5.0,
-            "professionalism_score": 5.0,
-            "resolution_score": 5.0,
+            "tone_score": 0.0,
+            "professionalism_score": 0.0,
+            "resolution_score": 0.0,
             "feedback": "Unable to evaluate quality due to processing error."
         }
