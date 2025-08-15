@@ -83,18 +83,8 @@ curl -H "Authorization: Bearer $OPENAI_API_KEY" \
 OPENAI_MODEL=gpt-3.5-turbo
 ```
 
-### Deepgram API Problems
+### Audio Processing Issues
 
-**Problem:** `Invalid Deepgram API key`
-```bash
-# Check API key format
-echo $DEEPGRAM_API_KEY
-# Should be a UUID-like string
-
-# Test Deepgram connectivity  
-curl -X GET "https://api.deepgram.com/v1/projects" \
-  -H "Authorization: Token $DEEPGRAM_API_KEY"
-```
 
 **Problem:** `Audio format not supported`
 ```bash
@@ -105,7 +95,7 @@ ffmpeg -i input.mp4 -acodec libmp3lame output.mp3
 
 **Problem:** `Audio file too large`
 ```bash
-# Deepgram limit: 150MB
+# OpenAI Whisper limit: 25MB
 # Compress audio file:
 ffmpeg -i input.wav -b:a 128k output.mp3
 
@@ -113,26 +103,6 @@ ffmpeg -i input.wav -b:a 128k output.mp3
 ffmpeg -i input.wav -f segment -segment_time 300 -c copy output_%03d.wav
 ```
 
-**Problem:** `Cannot instantiate typing.Union` error with Deepgram
-```python
-# This error occurs when using typed Deepgram SDK classes
-# Solution: Use dictionary format for options instead
-
-# Instead of:
-from deepgram import PrerecordedOptions, FileSource
-options = PrerecordedOptions(...)  # May cause Union type error
-
-# Use:
-options = {
-    "model": "nova-2",
-    "smart_format": True,
-    "punctuate": True,
-    "diarize": True,
-    "utterances": True,  # For utterance-level segments
-    "language": "en-US"
-}
-payload = {"buffer": audio_data}
-```
 
 ## Runtime Errors
 
@@ -345,11 +315,10 @@ docker-compose exec call-assistant ls -la /app/data/
 
 ### API Connectivity Issues
 
-**Problem:** `Connection timeout` to OpenAI/Deepgram
+**Problem:** `Connection timeout` to OpenAI
 ```bash
 # Test network connectivity
 ping api.openai.com
-ping api.deepgram.com
 
 # Check if behind corporate firewall
 curl -v https://api.openai.com/v1/models
@@ -374,7 +343,7 @@ export REQUESTS_CA_BUNDLE=/path/to/corporate-ca-bundle.crt
 **Problem:** Application starts but API calls fail
 ```bash
 # Verify all required variables are set
-env | grep -E "(OPENAI|DEEPGRAM)_API_KEY"
+env | grep "OPENAI_API_KEY"
 
 # Check .env file is loaded
 cat .env
@@ -515,7 +484,7 @@ echo "Hello world" > test.txt
 uv run python main.py test.txt
 
 # Verify all dependencies
-uv pip list | grep -E "(openai|deepgram|streamlit|langraph)"
+uv pip list | grep -E "(openai|streamlit|langraph)"
 ```
 
 ### When to Contact Support
@@ -592,7 +561,6 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 print('OpenAI:', 'OK' if os.getenv('OPENAI_API_KEY') else 'MISSING')
-print('Deepgram:', 'OK' if os.getenv('DEEPGRAM_API_KEY') else 'MISSING')
 "
 ```
 
@@ -643,12 +611,6 @@ else
     echo "OpenAI API: ❌ Failed"
 fi
 
-if curl -s -H "Authorization: Token $DEEPGRAM_API_KEY" \
-   https://api.deepgram.com/v1/projects > /dev/null; then
-    echo "Deepgram API: ✅ Connected"
-else
-    echo "Deepgram API: ❌ Failed"
-fi
 
 # Check disk space
 echo "Disk Space: $(df -h . | tail -1 | awk '{print $5}') used"
@@ -701,7 +663,7 @@ docker logs call-assistant
 docker run -it --entrypoint /bin/bash call-center-assistant
 
 # Verify all required environment variables
-docker run --rm call-center-assistant env | grep -E "OPENAI|DEEPGRAM"
+docker run --rm call-center-assistant env | grep "OPENAI"
 ```
 
 **Problem:** Streamlit not accessible on port 8501

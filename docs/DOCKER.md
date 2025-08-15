@@ -105,7 +105,6 @@ app:
     - "8501:8501"  # Streamlit UI
   environment:
     - OPENAI_API_KEY=${OPENAI_API_KEY}
-    - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
   volumes:
     - ./data:/app/data
     - ./logs:/app/logs
@@ -190,7 +189,6 @@ docker run -d \
 ```bash
 # API Keys (required)
 OPENAI_API_KEY=sk-...
-DEEPGRAM_API_KEY=...
 
 # Optional API Keys
 ANTHROPIC_API_KEY=...

@@ -1,11 +1,11 @@
 # AI Call Center Assistant
 
-A sophisticated multi-agent system for call center analysis with automated transcription, summarization, and quality assessment. Built with LangGraph, OpenAI, and Deepgram APIs.
+A sophisticated multi-agent system for call center analysis with automated transcription, summarization, and quality assessment. Built with LangGraph and OpenAI APIs.
 
 ## Features
 
 - **Multi-Agent Architecture**: Specialized agents for transcription, summarization, and quality scoring
-- **Speaker Diarization**: Advanced audio processing with speaker identification using Deepgram
+- **Audio Transcription**: Automated speech-to-text using OpenAI Whisper
 - **Quality Assessment**: Structured rubric-based evaluation of tone, professionalism, and resolution
 - **Modern UI**: Professional Streamlit interface with real-time progress tracking
 - **Robust Error Handling**: Comprehensive retry logic and fallback mechanisms
@@ -16,7 +16,6 @@ A sophisticated multi-agent system for call center analysis with automated trans
 ### Prerequisites
 - Python 3.12+
 - OpenAI API key (required)
-- Deepgram API key (required for audio transcription)
 
 ### Installation
 
@@ -48,7 +47,7 @@ docker run -p 8501:8501 --env-file .env call-center-assistant
 ```bash
 # Copy environment template and add your API keys
 cp .env.template .env
-# Edit .env with your OpenAI and Deepgram API keys
+# Edit .env with your OpenAI API key
 ```
 
 ### Usage
@@ -79,7 +78,7 @@ uv run streamlit run ui/streamlit_app.py
 The web interface provides:
 - File upload for audio (.mp3, .wav, .m4a) and text (.txt) files
 - Real-time processing progress
-- Interactive results with speaker-segmented transcripts
+- Interactive results with transcript display
 - Quality score visualizations with gauge charts
 - Detailed feedback and analysis
 
@@ -87,8 +86,8 @@ The web interface provides:
 
 ### Agent System
 - **Base Agent**: Common functionality and error handling
-- **Transcription Agent**: Deepgram + OpenAI Whisper fallback with speaker diarization
-- **Summarization Agent**: GPT-4 powered analysis with speaker-aware context
+- **Transcription Agent**: OpenAI Whisper for speech-to-text conversion
+- **Summarization Agent**: GPT-4 powered analysis of call transcripts
 - **Quality Scoring Agent**: Structured rubric evaluation (tone, professionalism, resolution)
 
 ### Workflow
@@ -110,8 +109,7 @@ This project uses `uv` for dependency management. For detailed development comma
 
 ## API Requirements
 
-- **OpenAI API Key**: Required for LLM operations
-- **Deepgram API Key**: Required for audio transcription with speaker diarization
+- **OpenAI API Key**: Required for transcription (Whisper), summarization, and quality scoring
 
 See `.env.template` for configuration details.
 

@@ -23,7 +23,6 @@ class ModelProvider(str, Enum):
 
 class TranscriptionProvider(str, Enum):
     """Supported transcription providers."""
-    DEEPGRAM = "deepgram"
     WHISPER = "whisper"
 
 
@@ -31,7 +30,6 @@ class TranscriptionProvider(str, Enum):
 class APIConfig:
     """API configuration container."""
     openai_api_key: Optional[str] = None
-    deepgram_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
     langsmith_api_key: Optional[str] = None
     
@@ -40,7 +38,6 @@ class APIConfig:
         """Create config from environment variables."""
         return cls(
             openai_api_key=os.getenv("OPENAI_API_KEY"),
-            deepgram_api_key=os.getenv("DEEPGRAM_API_KEY"),
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
             langsmith_api_key=os.getenv("LANGCHAIN_API_KEY")
         )
@@ -61,9 +58,9 @@ class APIConfig:
         if not self.openai_api_key and not self.anthropic_api_key:
             errors.append("At least one LLM API key required (OpenAI or Anthropic)")
         
-        # Transcription provider check
-        if require_transcription and not self.deepgram_api_key:
-            errors.append("Deepgram API key required for transcription with diarization")
+        # OpenAI API key required for transcription (Whisper)
+        if require_transcription and not self.openai_api_key:
+            errors.append("OpenAI API key required for transcription (Whisper)")
         
         return errors
     
@@ -85,9 +82,8 @@ class ModelConfig:
     llm_provider: ModelProvider = ModelProvider.OPENAI
     
     # Transcription settings
-    transcription_model: str = "nova-2"
-    transcription_provider: TranscriptionProvider = TranscriptionProvider.DEEPGRAM
-    enable_diarization: bool = True
+    transcription_model: str = "whisper-1"
+    transcription_provider: TranscriptionProvider = TranscriptionProvider.WHISPER
     
     # Retry settings
     max_retries: int = 2

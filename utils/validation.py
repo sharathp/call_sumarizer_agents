@@ -32,14 +32,6 @@ class CallSummary(BaseModel):
     outcome: Literal["resolved", "escalated", "follow_up", "unresolved"]
 
 
-class SpeakerSegment(BaseModel):
-    """Individual speaker segment with timing information."""
-    
-    speaker: str
-    text: str
-    start: float
-    end: float
-    confidence: Optional[float] = None
 
 
 class QualityScore(BaseModel):
@@ -57,7 +49,6 @@ class AgentState(BaseModel):
     call_id: str
     input_data: CallInput
     transcript_text: Optional[str] = None
-    speakers: List[SpeakerSegment] = Field(default_factory=list)
     summary: Optional[CallSummary] = None
     quality_score: Optional[QualityScore] = None
     errors: List[Dict[str, Any]] = Field(default_factory=list)
@@ -78,7 +69,6 @@ class ProcessingResult(BaseModel):
     call_id: str
     status: Literal["success", "partial", "failed"]
     transcript_text: Optional[str] = None
-    speakers: List[SpeakerSegment] = Field(default_factory=list)
     summary: Optional[CallSummary] = None
     quality_score: Optional[QualityScore] = None
     errors: List[Dict[str, Any]] = Field(default_factory=list)

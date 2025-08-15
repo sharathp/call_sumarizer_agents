@@ -19,8 +19,7 @@ The system can be deployed in multiple configurations:
 - **Network**: Outbound HTTPS access for API calls
 
 ### Required API Keys
-- **OpenAI API Key**: For LLM operations (required)
-- **Deepgram API Key**: For audio transcription (required)
+- **OpenAI API Key**: For transcription (Whisper), summarization, and quality scoring (required)
 
 ### Optional Services
 - **LangSmith API Key**: For workflow debugging and tracing
@@ -74,7 +73,6 @@ services:
       - "8501:8501"  # Streamlit UI
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
       - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
       - LOG_LEVEL=INFO
     volumes:
@@ -167,7 +165,6 @@ CMD ["uv", "run", "streamlit", "run", "ui/streamlit_app.py", "--server.address",
    - Add secrets in dashboard:
      ```
      OPENAI_API_KEY = "sk-your-key-here"
-     DEEPGRAM_API_KEY = "your-key-here"
      ```
 
 3. **Requirements for Streamlit Cloud:**
@@ -263,10 +260,6 @@ sudo systemctl status call-assistant
           "name": "OPENAI_API_KEY",
           "valueFrom": "arn:aws:secretsmanager:region:account:secret:openai-key"
         },
-        {
-          "name": "DEEPGRAM_API_KEY", 
-          "valueFrom": "arn:aws:secretsmanager:region:account:secret:deepgram-key"
-        }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
@@ -297,7 +290,6 @@ gcloud run deploy call-assistant \
   --allow-unauthenticated \
   --set-env-vars LOG_LEVEL=INFO \
   --set-secrets OPENAI_API_KEY=openai-key:latest \
-  --set-secrets DEEPGRAM_API_KEY=deepgram-key:latest \
   --memory 2Gi \
   --cpu 1 \
   --max-instances 10
@@ -552,7 +544,6 @@ docker update --memory=4g --cpus=2 call-assistant
    ```bash
    # Verify environment variables
    echo $OPENAI_API_KEY
-   echo $DEEPGRAM_API_KEY
    
    # Test API connectivity
    curl -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -644,7 +635,6 @@ jobs:
 def health():
     checks = {
         "openai_api": test_openai_connection(),
-        "deepgram_api": test_deepgram_connection(),
         "disk_space": check_disk_space(),
         "memory_usage": check_memory_usage()
     }
@@ -728,7 +718,6 @@ server {
 # Use HashiCorp Vault for secrets management
 export VAULT_ADDR="https://vault.company.com"
 export OPENAI_API_KEY=$(vault kv get -field=api_key secret/openai)
-export DEEPGRAM_API_KEY=$(vault kv get -field=api_key secret/deepgram)
 ```
 
 ## Performance Tuning

@@ -27,12 +27,10 @@ class CallCenterWorkflow:
     
     def __init__(
         self,
-        openai_api_key: Optional[str] = None,
-        deepgram_api_key: Optional[str] = None
+        openai_api_key: Optional[str] = None
     ):
-        # Initialize transcription agent with Deepgram and OpenAI fallback
+        # Initialize transcription agent with OpenAI Whisper
         self.transcription_agent = TranscriptionAgent(
-            deepgram_api_key=deepgram_api_key,
             openai_api_key=openai_api_key
         )
         self.summarization_agent = SummarizationAgent(
@@ -196,7 +194,6 @@ class CallCenterWorkflow:
                 call_id=final_state.call_id,
                 status=status,
                 transcript_text=final_state.transcript_text,
-                speakers=final_state.speakers,
                 summary=final_state.summary,
                 quality_score=final_state.quality_score,
                 errors=final_state.errors,
