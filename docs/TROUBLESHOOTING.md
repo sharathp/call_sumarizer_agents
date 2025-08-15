@@ -667,6 +667,212 @@ chmod +x health_check.sh
 ./health_check.sh
 ```
 
+## Docker Issues
+
+### Docker Build Problems
+
+**Problem:** `uv: not found` during Docker build
+```bash
+# Solution: Ensure uv is properly installed in PATH
+# Check Dockerfile has correct PATH setting:
+ENV PATH="/root/.local/bin:${PATH}"
+```
+
+**Problem:** `Unable to find lockfile at uv.lock`
+```bash
+# Solution: Generate lockfile before building
+uv lock
+docker build -t call-center-assistant .
+```
+
+**Problem:** Docker build runs out of memory
+```bash
+# Solution: Increase Docker memory limit
+# Docker Desktop: Settings → Resources → Memory → 4GB+
+# Or use multi-stage build to reduce memory usage
+```
+
+### Container Runtime Issues
+
+**Problem:** Container exits immediately
+```bash
+# Solution: Check logs and environment
+docker logs call-assistant
+docker run -it --entrypoint /bin/bash call-center-assistant
+
+# Verify all required environment variables
+docker run --rm call-center-assistant env | grep -E "OPENAI|DEEPGRAM"
+```
+
+**Problem:** Streamlit not accessible on port 8501
+```bash
+# Solution: Check port binding and firewall
+docker ps  # Verify port is mapped
+netstat -tulpn | grep 8501  # Check if port is bound
+
+# Test with curl
+curl http://localhost:8501/_stcore/health
+
+# Try different port mapping
+docker run -p 8080:8501 call-center-assistant
+```
+
+**Problem:** Permission denied for volumes
+```bash
+# Solution: Fix volume permissions
+sudo chown -R $(id -u):$(id -g) ./data ./logs
+
+# Or run with user mapping
+docker run --user $(id -u):$(id -g) call-center-assistant
+```
+
+### Docker Compose Issues
+
+**Problem:** Service dependencies not starting
+```bash
+# Solution: Check service health and dependencies
+docker-compose ps
+docker-compose logs redis
+docker-compose logs postgres
+
+# Restart specific service
+docker-compose restart app
+```
+
+**Problem:** Environment variables not loading
+```bash
+# Solution: Verify .env file location and format
+ls -la .env
+cat .env | head -5
+
+# Check variable substitution
+docker-compose config
+
+# Use explicit env_file in docker-compose.yml
+```
+
+**Problem:** Cannot connect to Redis/PostgreSQL
+```bash
+# Solution: Check network connectivity
+docker-compose exec app ping redis
+docker-compose exec app ping postgres
+
+# Verify service is ready
+docker-compose exec redis redis-cli ping
+docker-compose exec postgres pg_isready -U call_center_user
+```
+
+### Container Performance Issues
+
+**Problem:** Slow container startup
+```bash
+# Solution: Optimize Dockerfile layers
+# Use .dockerignore to exclude unnecessary files
+# Pre-build base images with dependencies
+
+# Check startup time
+time docker run --rm call-center-assistant --help
+```
+
+**Problem:** High memory usage
+```bash
+# Solution: Set memory limits and monitor
+docker run --memory="2g" --memory-swap="2g" call-center-assistant
+
+# Monitor usage
+docker stats call-assistant
+
+# Check for memory leaks
+docker exec call-assistant python -c "
+import psutil
+print(f'Memory: {psutil.virtual_memory().percent}%')
+"
+```
+
+**Problem:** Container health check failures
+```bash
+# Solution: Debug health check endpoint
+docker exec call-assistant curl -f http://localhost:8501/_stcore/health
+
+# Check Streamlit startup logs
+docker logs call-assistant | grep -i streamlit
+
+# Increase health check timeout
+# In docker-compose.yml:
+healthcheck:
+  start_period: 60s  # Increase from default
+  timeout: 30s       # Increase timeout
+```
+
+### Production Deployment Issues
+
+**Problem:** Container crashes in production
+```bash
+# Solution: Enable proper logging and monitoring
+docker run -d \
+  --restart unless-stopped \
+  --log-driver json-file \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  call-center-assistant
+
+# Monitor with external tools
+# Use Prometheus, Grafana, or cloud monitoring
+```
+
+**Problem:** SSL/TLS issues in production
+```bash
+# Solution: Configure reverse proxy (nginx/Apache)
+# Example nginx config:
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+    
+    location / {
+        proxy_pass http://localhost:8501;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+**Problem:** API rate limits in container
+```bash
+# Solution: Implement proper retry logic and caching
+# Add to docker-compose.yml:
+environment:
+  - MAX_RETRIES=5
+  - RETRY_DELAY=2
+  - CACHE_TTL=3600
+
+# Use Redis for caching
+docker-compose --profile with-redis up
+```
+
+### Debugging Container Issues
+
+```bash
+# Interactive debugging session
+docker run -it \
+  --entrypoint /bin/bash \
+  -v $(pwd):/workspace \
+  call-center-assistant
+
+# Check running processes
+docker exec call-assistant ps aux
+
+# Monitor logs in real-time
+docker logs -f call-assistant
+
+# Test network connectivity
+docker run --rm \
+  --network container:call-assistant \
+  nicolaka/netshoot ping api.openai.com
+
+# Inspect container configuration
+docker inspect call-assistant | jq '.Config.Env'
+```
+
 ## Advanced Debugging
 
 ### LangSmith Tracing
