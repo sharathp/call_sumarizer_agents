@@ -1,0 +1,135 @@
+[
+    {
+      "id": 1,
+      "customer_tone": "Frustrated",
+      "agent_tone": "Warm + Proactive",
+      "conversation": [
+        {"role": "customer", "text": "I’ve been waiting over a week for my package, and no one has given me an update! I really need it for a work event tomorrow."},
+        {"role": "agent", "text": "I completely understand how stressful that must be, especially since you need it for an important occasion. I’m so sorry about the delay. Let me look up your order status now for you."},
+        {"role": "customer", "text": "Thanks. I’ve checked my tracking and it just says 'in transit.’"},
+        {"role": "agent", "text": "It looks like your package was delayed due to an unexpected courier issue, but I can upgrade your shipping to express at no extra cost. I’ll also email you a direct tracking link, and your package will arrive by tomorrow morning."},
+        {"role": "customer", "text": "That helps a lot. Can you send me the confirmation?"},
+        {"role": "agent", "text": "Absolutely. You’ll have a confirmation email in two minutes. Please let me know if there’s anything else I can do."},
+        {"role": "customer", "text": "No, that’s all. I appreciate your help!"}
+      ]
+    },
+    {
+      "id": 2,
+      "customer_tone": "Angry",
+      "agent_tone": "Disrespectful, Dismissive",
+      "conversation": [
+        {"role": "customer", "text": "This is the third time my internet has gone down this month. I’m losing patience—what is being done?"},
+        {"role": "agent", "text": "Look, outages happen. You’re not the only one affected. The earliest we can send someone is Monday, so you’ll just have to wait."},
+        {"role": "customer", "text": "That’s not acceptable—I work from home!"},
+        {"role": "agent", "text": "I understand you’re frustrated, but our schedule is full. Call back Monday if you still have issues."},
+        {"role": "customer", "text": "Wow… okay."}
+      ]
+    },
+    {
+      "id": 3,
+      "customer_tone": "Curious",
+      "agent_tone": "Friendly + Informative",
+      "conversation": [
+        {"role": "customer", "text": "I noticed my bill is higher this month—did something change? I usually pay $65 but it’s $95 now."},
+        {"role": "agent", "text": "Great question! Let me pull up your account to double‑check, just a moment…"},
+        {"role": "customer", "text": "Thanks. I haven’t changed anything myself."},
+        {"role": "agent", "text": "I see that last month you added our Premium TV package during the promotion period, which ended this billing cycle. If you weren’t planning to keep it, I can remove it and refund the extra charge today."},
+        {"role": "customer", "text": "I must’ve clicked it by mistake. Yes, please remove and refund."},
+        {"role": "agent", "text": "Of course! It’s all sorted, and you’ll see the adjustment on your next bill. Is there anything else about your account I can clarify?"},
+        {"role": "customer", "text": "No, that was it. Appreciate the quick fix!"}
+      ]
+    },
+    {
+      "id": 4,
+      "customer_tone": "Demanding",
+      "agent_tone": "Sarcastic + Blunt",
+      "conversation": [
+        {"role": "customer", "text": "I want a refund for my flight—even though it was a non‑refundable ticket. The cancellation was out of my control."},
+        {"role": "agent", "text": "Well, that’s why they call it non‑refundable. It’s right there in the terms you agreed to."},
+        {"role": "customer", "text": "I’m asking because it wasn’t my fault."},
+        {"role": "agent", "text": "Fault isn’t relevant here. You either take the travel credit we offer or you get nothing."},
+        {"role": "customer", "text": "Fine, just give me the credit."},
+        {"role": "agent", "text": "Alright, I’ll send it out. Read the terms next time."}
+      ]
+    },
+    {
+      "id": 5,
+      "customer_tone": "Distressed",
+      "agent_tone": "Gentle + Supportive",
+      "conversation": [
+        {"role": "customer", "text": "This order was for my son’s birthday yesterday, and it never arrived. I’m really upset—I planned everything around this."},
+        {"role": "agent", "text": "I am truly sorry; missing such a special occasion must be so disappointing. Please know I’m here to help and make this right."},
+        {"role": "customer", "text": "I tried calling and emailing but didn’t get a response until now."},
+        {"role": "agent", "text": "Thank you for your patience. I’m escalating your issue as a priority. I’ll send a replacement out today by expedited shipping, and we’ll refund your original payment."},
+        {"role": "customer", "text": "Is there a way to make sure this actually gets delivered?"},
+        {"role": "agent", "text": "I’ll monitor the shipment personally and send you updates as it moves. You can also reach me directly. We want to make this up to you."},
+        {"role": "customer", "text": "Thanks for understanding. This really means a lot."}
+      ]
+    },
+    {
+      "id": 6,
+      "customer_tone": "Anxious",
+      "agent_tone": "Relaxed + Reassuring",
+      "conversation": [
+        {"role": "customer", "text": "I think I've been charged twice for the same item. The transactions look identical."},
+        {"role": "agent", "text": "Ah, I’ve seen situations like this before—don’t worry, I’ll get this sorted for you. Let’s pull up your purchases and have a quick look."},
+        {"role": "customer", "text": "I appreciate it—I just don’t want to pay extra."},
+        {"role": "agent", "text": "Good news—it’s just a temporary hold from your bank. It’ll drop off in about 24–48 hours. I’ll keep an eye on it and give you a heads-up when it’s gone."},
+        {"role": "customer", "text": "And if it doesn’t go away?"},
+        {"role": "agent", "text": "Then we’ll jump in and process a refund. You won’t be left hanging."},
+        {"role": "customer", "text": "Thanks, I feel better now."}
+      ]
+    },
+    {
+      "id": 7,
+      "customer_tone": "Frustrated but Polite",
+      "agent_tone": "Authoritative + Technical",
+      "conversation": [
+        {"role": "customer", "text": "My washing machine keeps stopping mid-cycle. It’s really messing up my schedule."},
+        {"role": "agent", "text": "That’s definitely not normal operation. Based on your description, the safety stop could be triggered by an overloaded or unbalanced drum. Please try smaller, evenly distributed loads until our technician arrives tomorrow."},
+        {"role": "customer", "text": "Alright, I didn’t know that."},
+        {"role": "agent", "text": "No problem—it’s a common cause. The technician will run a diagnostic and take any necessary repair actions tomorrow."},
+        {"role": "customer", "text": "Thanks for the information."}
+      ]
+    },
+    {
+      "id": 8,
+      "customer_tone": "Irritated but Joking",
+      "agent_tone": "Playful + Apologetic",
+      "conversation": [
+        {"role": "customer", "text": "My coffee subscription skipped me this month—is this a sign I should quit caffeine?"},
+        {"role": "agent", "text": "No caffeine drought on my watch! Looks like your subscription was paused by accident. Let’s get it restarted right away."},
+        {"role": "customer", "text": "What about all the mornings I missed out?"},
+        {"role": "agent", "text": "You’ve suffered enough—I’m sending you a complimentary bag to make up for the mix-up. You’ll get a tracking number soon."},
+        {"role": "customer", "text": "Appreciate both the fix and the freebies!"},
+        {"role": "agent", "text": "Our pleasure! If anything goes awry again, just let us know."}
+      ]
+    },
+    {
+      "id": 9,
+      "customer_tone": "Confused",
+      "agent_tone": "Professional + Clarifying",
+      "conversation": [
+        {"role": "customer", "text": "I requested a password reset, but the link isn’t working. It says it’s expired."},
+        {"role": "agent", "text": "I’m sorry for the inconvenience. The password reset link expires in 15 minutes for security reasons. Let me send you a new one right now—could you please open your email and let me know when you receive it?"},
+        {"role": "customer", "text": "Okay, got the email just now."},
+        {"role": "agent", "text": "Please click the link and follow the prompts. If anything seems off, I can help right here."},
+        {"role": "customer", "text": "It worked! I’m in now."},
+        {"role": "agent", "text": "Fantastic. I’ll stay on with you for a moment to make sure your account is updating as expected."},
+        {"role": "customer", "text": "All good. Thanks for being patient!"}
+      ]
+    },
+    {
+      "id": 10,
+      "customer_tone": "Grateful",
+      "agent_tone": "Enthusiastic + Appreciative",
+      "conversation": [
+        {"role": "customer", "text": "Your support team was amazing last week when I had that issue with my software. I just wanted to say thanks."},
+        {"role": "agent", "text": "That’s fantastic to hear—thank you so much for telling us! I’ll make sure the whole team gets your message."},
+        {"role": "customer", "text": "They really took their time and explained everything."},
+        {"role": "agent", "text": "That’s exactly the kind of service we aim for. We’re thrilled it made a difference for you."},
+        {"role": "customer", "text": "That’s all I needed. Have a great day!"},
+        {"role": "agent", "text": "You too—and thanks again for making our day with your feedback!"}
+      ]
+    }
+  ]  
