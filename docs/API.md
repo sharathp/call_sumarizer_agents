@@ -143,10 +143,13 @@ Converts audio input to text with speaker diarization.
 def process(self, state: AgentState) -> AgentState:
     """Convert audio to transcript with speaker segments."""
 
-def _transcribe_with_deepgram(self, audio_data: bytes) -> tuple[str, List[SpeakerSegment]]:
-    """Transcribe using Deepgram with speaker diarization."""
+def _transcribe_with_diarization(self, audio_content: bytes) -> tuple[str, List[SpeakerSegment]]:
+    """Transcribe using Deepgram with utterance-level speaker diarization."""
 
-def _transcribe_with_openai(self, audio_data: bytes) -> str:
+def _extract_transcript_and_speakers(self, response) -> tuple[str, List[SpeakerSegment]]:
+    """Extract transcript and speaker segments from Deepgram response."""
+
+def _fallback_transcribe_audio(self, audio_content: bytes) -> str:
     """Fallback transcription using OpenAI Whisper."""
 ```
 
