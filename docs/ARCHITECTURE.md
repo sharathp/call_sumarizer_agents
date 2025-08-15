@@ -309,6 +309,54 @@ REDIS_CONFIG = {
 - No sensitive data in logs
 - Secure handling of temporary files
 
+## Deployment Architecture
+
+### Docker Containerization
+
+The application is containerized using a multi-stage Docker build for optimal image size:
+
+```dockerfile
+# Stage 1: Builder
+- Install build dependencies
+- Create virtual environment with uv
+- Install Python dependencies
+
+# Stage 2: Production
+- Copy virtual environment from builder
+- Add application code
+- Run as non-root user
+- Health checks configured
+```
+
+### Container Orchestration
+
+Docker Compose provides orchestration with optional services:
+
+```yaml
+services:
+  app:                 # Main application container
+    - Streamlit UI on port 8501
+    - Environment variables from .env
+    - Volume mounts for data and logs
+    
+  redis: (optional)    # Memory/caching layer
+    - Port 6379
+    - Persistent volume for data
+    
+  postgres: (optional) # Persistent storage
+    - Port 5432
+    - Database for call history
+```
+
+### Deployment Options
+
+1. **Local Docker**: Single container with docker run
+2. **Docker Compose**: Full stack with optional services
+3. **Kubernetes**: Scalable deployment (Helm charts available)
+4. **Cloud Platforms**: AWS ECS, Google Cloud Run, Azure Container Instances
+
+For detailed Docker configuration and deployment instructions, see **[Docker Guide](DOCKER.md)**.
+
 ## Extension Points
 
 ### Adding New Agents

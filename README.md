@@ -32,6 +32,17 @@ uv sync
 pip install -e .
 ```
 
+### Docker Quick Start
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Or run with Docker directly
+docker build -t call-center-assistant .
+docker run -p 8501:8501 --env-file .env call-center-assistant
+```
+
 ### Configuration
 
 ```bash
@@ -153,6 +164,7 @@ For detailed API response formats and JSON examples, see **[API Documentation](d
 
 - **[API Documentation](docs/API.md)**: Data models, agent interfaces, and response schemas
 - **[Architecture Guide](docs/ARCHITECTURE.md)**: System design, workflow, and technical details  
+- **[Docker Guide](docs/DOCKER.md)**: Containerization and Docker deployment
 - **[Deployment Guide](docs/DEPLOYMENT.md)**: Production deployment options and configuration
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
 - **[Development Guide](CLAUDE.md)**: Internal development guidelines for AI assistants
