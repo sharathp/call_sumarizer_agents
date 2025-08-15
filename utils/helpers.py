@@ -36,7 +36,23 @@ def parse_llm_json_response(content: str, fallback: Optional[Dict[str, Any]] = N
     content = content.replace('`', '')
     
     try:
-        return json.loads(content)
+        result = json.loads(content)
+        
+        # Special handling for feedback field if it's a dictionary
+        if isinstance(result, dict) and 'feedback' in result:
+            if isinstance(result['feedback'], dict):
+                # Convert dictionary feedback to string
+                feedback_dict = result['feedback']
+                feedback_parts = []
+                for key, value in feedback_dict.items():
+                    if isinstance(value, str):
+                        feedback_parts.append(f"{key.title()}: {value}")
+                    elif isinstance(value, (list, dict)):
+                        feedback_parts.append(f"{key.title()}: {json.dumps(value)}")
+                result['feedback'] = " ".join(feedback_parts)
+                logger.warning("Converted dictionary feedback to string format")
+        
+        return result
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing error: {str(e)}, Content preview: {content[:200]}...")
         if fallback:

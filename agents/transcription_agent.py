@@ -5,9 +5,9 @@ Simplified Transcription Agent - Converts audio to text using Deepgram API with 
 import logging
 import os
 import tempfile
-from typing import Optional, Tuple, List
+from typing import Optional
 
-from deepgram import DeepgramClient, PrerecordedOptions, FileSource
+from deepgram import DeepgramClient
 from openai import OpenAI
 
 from utils.validation import AgentState, InputType, SpeakerSegment
@@ -69,167 +69,108 @@ class TranscriptionAgent:
         try:
             logger.info("Starting Deepgram transcription with diarization")
             
-            # Try a simpler approach without complex type handling
-            logger.info("Creating basic Deepgram request")
-            
             # Read the audio file
             with open(tmp_file_path, "rb") as audio_file:
                 buffer_data = audio_file.read()
             
-            # Use a simpler payload format to avoid Union type issues
-            from deepgram import FileSource
-            payload = {"buffer": buffer_data}
-            
-            # Simpler options to avoid potential type issues
+            # Configure Deepgram options for utterance-level diarization
             options = {
                 "model": "nova-2",
                 "smart_format": True,
                 "punctuate": True,
                 "diarize": True,
+                "utterances": True,  # Get utterance-level segments
                 "language": "en-US"
             }
             
-            logger.info("Sending request to Deepgram with simplified approach")
+            # Create payload with buffer data
+            payload = {"buffer": buffer_data}
             
-            # Try the API call with error handling
-            try:
-                response = self.deepgram_client.listen.rest.v("1").transcribe_file(
-                    payload, options
-                )
-                logger.info("Successfully received Deepgram response")
+            logger.info("Sending request to Deepgram")
+            response = self.deepgram_client.listen.prerecorded.v("1").transcribe_file(
+                payload, options
+            )
+            
+            # Extract transcript and speaker segments
+            transcript_text, speaker_segments = self._extract_transcript_and_speakers(response)
+            
+            if not transcript_text:
+                raise ValueError("No transcript text extracted from response")
                 
-                # Parse response safely
-                transcript_text = ""
-                speaker_segments = []
-                
-                if hasattr(response, 'results') and response.results:
-                    if hasattr(response.results, 'channels') and response.results.channels:
-                        channel = response.results.channels[0]
-                        if hasattr(channel, 'alternatives') and channel.alternatives:
-                            transcript_text = channel.alternatives[0].transcript or ""
-                            logger.info(f"Extracted transcript: {len(transcript_text)} characters")
-                
-                # Parse speaker diarization if available
-                from utils.validation import SpeakerSegment
-                if transcript_text:
-                    # Try to extract speaker segments from diarized response
-                    speaker_segments = self._parse_speaker_segments(response, transcript_text)
-                    
-                    # Fallback to single speaker if diarization parsing fails
-                    if not speaker_segments:
-                        logger.info("No speaker segments found, creating single speaker segment")
-                        speaker_segments = [
-                            SpeakerSegment(
-                                speaker="Speaker 0",
-                                text=transcript_text,
-                                start=0.0,
-                                end=10.0,  # Estimated duration
-                                confidence=0.9
-                            )
-                        ]
-                    
-                return transcript_text, speaker_segments
-                
-            except Exception as deepgram_error:
-                logger.error(f"Deepgram API error: {deepgram_error}")
-                # Fall back to OpenAI if available
-                if self.openai_client:
-                    logger.info("Falling back to OpenAI Whisper")
-                    transcript = self._fallback_transcribe_audio(audio_content)
-                    # Return with empty speaker segments
-                    return transcript, []
-                else:
-                    raise deepgram_error
+            logger.info(f"Transcription completed: {len(transcript_text)} chars, {len(speaker_segments)} segments")
+            return transcript_text, speaker_segments
+            
+        except Exception as e:
+            logger.error(f"Deepgram transcription failed: {str(e)}")
+            # Fallback to OpenAI if available
+            if self.openai_client:
+                logger.info("Falling back to OpenAI Whisper")
+                transcript = self._fallback_transcribe_audio(audio_content)
+                # Create single speaker segment for fallback
+                segments = [SpeakerSegment(
+                    speaker="Speaker 1",
+                    text=transcript,
+                    start=0.0,
+                    end=10.0,
+                    confidence=0.9
+                )] if transcript else []
+                return transcript, segments
+            raise e
             
         finally:
             if os.path.exists(tmp_file_path):
                 os.unlink(tmp_file_path)
     
-    def _parse_speaker_segments(self, response, transcript_text):
-        """Safely parse speaker segments from Deepgram response."""
+    def _extract_transcript_and_speakers(self, response):
+        """Extract transcript and speaker segments from Deepgram response."""
+        transcript_text = ""
+        speaker_segments = []
+        
         try:
-            from utils.validation import SpeakerSegment
-            speaker_segments = []
+            # Get the transcript text
+            if response.results and response.results.channels:
+                channel = response.results.channels[0]
+                if channel.alternatives:
+                    transcript_text = channel.alternatives[0].transcript or ""
             
-            logger.info("Attempting to parse speaker diarization data")
-            
-            # Navigate response structure safely
-            if not (hasattr(response, 'results') and response.results):
-                logger.info("No results in response")
-                return []
+            # Try to get utterances (pre-grouped by speaker)
+            if hasattr(response.results, 'utterances') and response.results.utterances:
+                logger.info(f"Found {len(response.results.utterances)} utterances")
                 
-            if not (hasattr(response.results, 'channels') and response.results.channels):
-                logger.info("No channels in response")
-                return []
-                
-            channel = response.results.channels[0]
-            if not (hasattr(channel, 'alternatives') and channel.alternatives):
-                logger.info("No alternatives in channel")
-                return []
-                
-            alternative = channel.alternatives[0]
-            if not (hasattr(alternative, 'words') and alternative.words):
-                logger.info("No words with timing in response")
-                return []
-            
-            logger.info(f"Found {len(alternative.words)} words with timing data")
-            
-            # Group words by speaker
-            current_speaker = None
-            current_text = ""
-            current_start = None
-            current_end = None
-            
-            for word in alternative.words:
-                # Safely get speaker info
-                speaker = getattr(word, 'speaker', 0)
-                word_text = getattr(word, 'word', '')
-                word_start = getattr(word, 'start', 0.0)
-                word_end = getattr(word, 'end', 0.0)
-                
-                if current_speaker is None:
-                    # First word
-                    current_speaker = speaker
-                    current_text = word_text
-                    current_start = word_start
-                    current_end = word_end
-                elif current_speaker == speaker:
-                    # Same speaker, continue building segment
-                    current_text += " " + word_text
-                    current_end = word_end
-                else:
-                    # Speaker changed, save current segment
-                    if current_text.strip():
+                for utterance in response.results.utterances:
+                    if utterance.transcript:
                         speaker_segments.append(SpeakerSegment(
-                            speaker=f"Speaker {current_speaker}",
-                            text=current_text.strip(),
-                            start=float(current_start),
-                            end=float(current_end),
-                            confidence=getattr(word, 'confidence', 0.9)
+                            speaker=f"Speaker {utterance.speaker}",
+                            text=utterance.transcript,
+                            start=utterance.start,
+                            end=utterance.end,
+                            confidence=utterance.confidence if hasattr(utterance, 'confidence') else 0.9
                         ))
-                    
-                    # Start new segment
-                    current_speaker = speaker
-                    current_text = word_text
-                    current_start = word_start
-                    current_end = word_end
             
-            # Add final segment
-            if current_text and current_text.strip():
-                speaker_segments.append(SpeakerSegment(
-                    speaker=f"Speaker {current_speaker}",
-                    text=current_text.strip(),
-                    start=float(current_start),
-                    end=float(current_end),
-                    confidence=getattr(alternative.words[-1], 'confidence', 0.9)
-                ))
-            
-            logger.info(f"Successfully parsed {len(speaker_segments)} speaker segments")
-            return speaker_segments
+            # If no utterances but we have transcript, create single segment
+            if transcript_text and not speaker_segments:
+                logger.info("No utterances found, creating single speaker segment")
+                speaker_segments = [SpeakerSegment(
+                    speaker="Speaker 1",
+                    text=transcript_text,
+                    start=0.0,
+                    end=10.0,
+                    confidence=0.9
+                )]
             
         except Exception as e:
-            logger.warning(f"Failed to parse speaker segments: {e}")
-            return []
+            logger.warning(f"Error extracting speaker segments: {e}")
+            # If we at least have transcript text, use it
+            if transcript_text:
+                speaker_segments = [SpeakerSegment(
+                    speaker="Speaker 1",
+                    text=transcript_text,
+                    start=0.0,
+                    end=10.0,
+                    confidence=0.9
+                )]
+        
+        return transcript_text, speaker_segments
     
     def _fallback_transcribe_audio(self, audio_content):
         """Fallback transcription using OpenAI Whisper API."""
