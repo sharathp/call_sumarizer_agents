@@ -211,8 +211,8 @@ Full transcript (if needed for context): {transcript_fallback[:500]}..."""
     def _get_fallback_summary() -> dict:
         """Get a fallback summary structure."""
         return {
-            "summary": "Call transcript processed.",
-            "key_points": ["Call completed"],
-            "sentiment": "neutral",
-            "outcome": "unresolved"
+            "summary": "Unable to process transcript.",
+            "key_points": ["Failed to process transcript."],
+            "sentiment": "unknown",
+            "outcome": "unknown"
         }
