@@ -1,7 +1,5 @@
 {
   "id": 8,
-  "customer_tone": "Irritated but Joking",
-  "agent_tone": "Playful + Apologetic",
   "conversation": [
     {
       "role": "customer",

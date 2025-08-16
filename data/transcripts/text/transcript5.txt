@@ -1,7 +1,5 @@
 {
   "id": 5,
-  "customer_tone": "Distressed",
-  "agent_tone": "Gentle + Supportive",
   "conversation": [
     {
       "role": "customer",

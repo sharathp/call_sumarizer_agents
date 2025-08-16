@@ -1,7 +1,5 @@
 {
   "id": 10,
-  "customer_tone": "Grateful",
-  "agent_tone": "Enthusiastic + Appreciative",
   "conversation": [
     {
       "role": "customer",

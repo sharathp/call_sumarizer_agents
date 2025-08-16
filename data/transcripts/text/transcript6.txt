@@ -1,7 +1,5 @@
 {
   "id": 6,
-  "customer_tone": "Anxious",
-  "agent_tone": "Relaxed + Reassuring",
   "conversation": [
     {
       "role": "customer",

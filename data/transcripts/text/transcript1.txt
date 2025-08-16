@@ -1,7 +1,5 @@
 {
   "id": 1,
-  "customer_tone": "Frustrated",
-  "agent_tone": "Warm + Proactive",
   "conversation": [
     {
       "role": "customer",

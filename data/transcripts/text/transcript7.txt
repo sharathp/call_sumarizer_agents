@@ -1,7 +1,5 @@
 {
   "id": 7,
-  "customer_tone": "Frustrated but Polite",
-  "agent_tone": "Authoritative + Technical",
   "conversation": [
     {
       "role": "customer",
