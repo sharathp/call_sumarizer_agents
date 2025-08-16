@@ -222,7 +222,7 @@ def render_quality_gauge(score, title, color="#3b82f6", dark_mode=None):
     """Render a quality score gauge using Plotly with adaptive colors."""
     # Auto-detect based on session state if not provided
     if dark_mode is None:
-        dark_mode = st.session_state.get('dark_mode', True)  # Default to dark mode
+        dark_mode = st.session_state.get('dark_mode', False)  # Default to light mode
     
     # Use adaptive colors based on theme
     if dark_mode:
@@ -285,7 +285,10 @@ def main():
     
     # Initialize dark mode in session state if not present
     if 'dark_mode' not in st.session_state:
-        st.session_state.dark_mode = True  # Default to dark mode
+        # Default to light mode during daytime hours (6 AM - 6 PM)
+        from datetime import datetime
+        current_hour = datetime.now().hour
+        st.session_state.dark_mode = not (6 <= current_hour < 18)
     
     # Add Font Awesome
     st.markdown(
