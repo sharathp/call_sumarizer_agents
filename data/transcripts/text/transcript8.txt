@@ -1,0 +1,31 @@
+{
+  "id": 8,
+  "customer_tone": "Irritated but Joking",
+  "agent_tone": "Playful + Apologetic",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "My coffee subscription skipped me this month\u2014is this a sign I should quit caffeine?"
+    },
+    {
+      "role": "agent",
+      "text": "No caffeine drought on my watch! Looks like your subscription was paused by accident. Let\u2019s get it restarted right away."
+    },
+    {
+      "role": "customer",
+      "text": "What about all the mornings I missed out?"
+    },
+    {
+      "role": "agent",
+      "text": "You\u2019ve suffered enough\u2014I\u2019m sending you a complimentary bag to make up for the mix-up. You\u2019ll get a tracking number soon."
+    },
+    {
+      "role": "customer",
+      "text": "Appreciate both the fix and the freebies!"
+    },
+    {
+      "role": "agent",
+      "text": "Our pleasure! If anything goes awry again, just let us know."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "id": 9,
+  "customer_tone": "Confused",
+  "agent_tone": "Professional + Clarifying",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "I requested a password reset, but the link isn\u2019t working. It says it\u2019s expired."
+    },
+    {
+      "role": "agent",
+      "text": "I\u2019m sorry for the inconvenience. The password reset link expires in 15 minutes for security reasons. Let me send you a new one right now\u2014could you please open your email and let me know when you receive it?"
+    },
+    {
+      "role": "customer",
+      "text": "Okay, got the email just now."
+    },
+    {
+      "role": "agent",
+      "text": "Please click the link and follow the prompts. If anything seems off, I can help right here."
+    },
+    {
+      "role": "customer",
+      "text": "It worked! I\u2019m in now."
+    },
+    {
+      "role": "agent",
+      "text": "Fantastic. I\u2019ll stay on with you for a moment to make sure your account is updating as expected."
+    },
+    {
+      "role": "customer",
+      "text": "All good. Thanks for being patient!"
+    }
+  ]
+}

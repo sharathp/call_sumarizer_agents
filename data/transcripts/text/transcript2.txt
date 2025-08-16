@@ -1,0 +1,27 @@
+{
+  "id": 2,
+  "customer_tone": "Angry",
+  "agent_tone": "Disrespectful, Dismissive",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "This is the third time my internet has gone down this month. I\u2019m losing patience\u2014what is being done?"
+    },
+    {
+      "role": "agent",
+      "text": "Look, outages happen. You\u2019re not the only one affected. The earliest we can send someone is Monday, so you\u2019ll just have to wait."
+    },
+    {
+      "role": "customer",
+      "text": "That\u2019s not acceptable\u2014I work from home!"
+    },
+    {
+      "role": "agent",
+      "text": "I understand you\u2019re frustrated, but our schedule is full. Call back Monday if you still have issues."
+    },
+    {
+      "role": "customer",
+      "text": "Wow\u2026 okay."
+    }
+  ]
+}

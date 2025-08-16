@@ -1,0 +1,35 @@
+{
+  "id": 5,
+  "customer_tone": "Distressed",
+  "agent_tone": "Gentle + Supportive",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "This order was for my son\u2019s birthday yesterday, and it never arrived. I\u2019m really upset\u2014I planned everything around this."
+    },
+    {
+      "role": "agent",
+      "text": "I am truly sorry; missing such a special occasion must be so disappointing. Please know I\u2019m here to help and make this right."
+    },
+    {
+      "role": "customer",
+      "text": "I tried calling and emailing but didn\u2019t get a response until now."
+    },
+    {
+      "role": "agent",
+      "text": "Thank you for your patience. I\u2019m escalating your issue as a priority. I\u2019ll send a replacement out today by expedited shipping, and we\u2019ll refund your original payment."
+    },
+    {
+      "role": "customer",
+      "text": "Is there a way to make sure this actually gets delivered?"
+    },
+    {
+      "role": "agent",
+      "text": "I\u2019ll monitor the shipment personally and send you updates as it moves. You can also reach me directly. We want to make this up to you."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks for understanding. This really means a lot."
+    }
+  ]
+}

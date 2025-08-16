@@ -1,0 +1,31 @@
+{
+  "id": 10,
+  "customer_tone": "Grateful",
+  "agent_tone": "Enthusiastic + Appreciative",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "Your support team was amazing last week when I had that issue with my software. I just wanted to say thanks."
+    },
+    {
+      "role": "agent",
+      "text": "That\u2019s fantastic to hear\u2014thank you so much for telling us! I\u2019ll make sure the whole team gets your message."
+    },
+    {
+      "role": "customer",
+      "text": "They really took their time and explained everything."
+    },
+    {
+      "role": "agent",
+      "text": "That\u2019s exactly the kind of service we aim for. We\u2019re thrilled it made a difference for you."
+    },
+    {
+      "role": "customer",
+      "text": "That\u2019s all I needed. Have a great day!"
+    },
+    {
+      "role": "agent",
+      "text": "You too\u2014and thanks again for making our day with your feedback!"
+    }
+  ]
+}

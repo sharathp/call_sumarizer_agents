@@ -1,0 +1,35 @@
+{
+  "id": 1,
+  "customer_tone": "Frustrated",
+  "agent_tone": "Warm + Proactive",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "I\u2019ve been waiting over a week for my package, and no one has given me an update! I really need it for a work event tomorrow."
+    },
+    {
+      "role": "agent",
+      "text": "I completely understand how stressful that must be, especially since you need it for an important occasion. I\u2019m so sorry about the delay. Let me look up your order status now for you."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks. I\u2019ve checked my tracking and it just says 'in transit.\u2019"
+    },
+    {
+      "role": "agent",
+      "text": "It looks like your package was delayed due to an unexpected courier issue, but I can upgrade your shipping to express at no extra cost. I\u2019ll also email you a direct tracking link, and your package will arrive by tomorrow morning."
+    },
+    {
+      "role": "customer",
+      "text": "That helps a lot. Can you send me the confirmation?"
+    },
+    {
+      "role": "agent",
+      "text": "Absolutely. You\u2019ll have a confirmation email in two minutes. Please let me know if there\u2019s anything else I can do."
+    },
+    {
+      "role": "customer",
+      "text": "No, that\u2019s all. I appreciate your help!"
+    }
+  ]
+}

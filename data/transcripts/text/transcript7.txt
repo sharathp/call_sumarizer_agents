@@ -1,0 +1,27 @@
+{
+  "id": 7,
+  "customer_tone": "Frustrated but Polite",
+  "agent_tone": "Authoritative + Technical",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "My washing machine keeps stopping mid-cycle. It\u2019s really messing up my schedule."
+    },
+    {
+      "role": "agent",
+      "text": "That\u2019s definitely not normal operation. Based on your description, the safety stop could be triggered by an overloaded or unbalanced drum. Please try smaller, evenly distributed loads until our technician arrives tomorrow."
+    },
+    {
+      "role": "customer",
+      "text": "Alright, I didn\u2019t know that."
+    },
+    {
+      "role": "agent",
+      "text": "No problem\u2014it\u2019s a common cause. The technician will run a diagnostic and take any necessary repair actions tomorrow."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks for the information."
+    }
+  ]
+}
