@@ -1,7 +1,5 @@
 {
   "id": 9,
-  "customer_tone": "Confused",
-  "agent_tone": "Professional + Clarifying",
   "conversation": [
     {
       "role": "customer",

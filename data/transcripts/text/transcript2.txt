@@ -1,7 +1,5 @@
 {
   "id": 2,
-  "customer_tone": "Angry",
-  "agent_tone": "Disrespectful, Dismissive",
   "conversation": [
     {
       "role": "customer",

@@ -1,7 +1,5 @@
 {
   "id": 3,
-  "customer_tone": "Curious",
-  "agent_tone": "Friendly + Informative",
   "conversation": [
     {
       "role": "customer",

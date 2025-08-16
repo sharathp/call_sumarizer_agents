@@ -1,7 +1,5 @@
 {
   "id": 4,
-  "customer_tone": "Demanding",
-  "agent_tone": "Sarcastic + Blunt",
   "conversation": [
     {
       "role": "customer",
