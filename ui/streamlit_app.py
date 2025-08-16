@@ -618,13 +618,12 @@ def main():
             with tab1:
                 # Transcript tab content
                 if result.transcript_text:
-                    st.text_area(
-                        "Call Transcript",
-                        value=result.transcript_text,
-                        height=400,
-                        disabled=True,
-                        label_visibility="collapsed"
-                    )
+                    st.markdown("### Call Transcript")
+                    st.markdown(f"""
+                    <div style="background-color: #f0f2f6; padding: 1rem; border-radius: 0.5rem; max-height: 400px; overflow-y: auto;">
+                        {result.transcript_text}
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
                     st.info("No transcript available for this call.")
             
