@@ -1,0 +1,35 @@
+{
+  "id": 3,
+  "customer_tone": "Curious",
+  "agent_tone": "Friendly + Informative",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "I noticed my bill is higher this month\u2014did something change? I usually pay $65 but it\u2019s $95 now."
+    },
+    {
+      "role": "agent",
+      "text": "Great question! Let me pull up your account to double\u2011check, just a moment\u2026"
+    },
+    {
+      "role": "customer",
+      "text": "Thanks. I haven\u2019t changed anything myself."
+    },
+    {
+      "role": "agent",
+      "text": "I see that last month you added our Premium TV package during the promotion period, which ended this billing cycle. If you weren\u2019t planning to keep it, I can remove it and refund the extra charge today."
+    },
+    {
+      "role": "customer",
+      "text": "I must\u2019ve clicked it by mistake. Yes, please remove and refund."
+    },
+    {
+      "role": "agent",
+      "text": "Of course! It\u2019s all sorted, and you\u2019ll see the adjustment on your next bill. Is there anything else about your account I can clarify?"
+    },
+    {
+      "role": "customer",
+      "text": "No, that was it. Appreciate the quick fix!"
+    }
+  ]
+}

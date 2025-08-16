@@ -1,0 +1,35 @@
+{
+  "id": 6,
+  "customer_tone": "Anxious",
+  "agent_tone": "Relaxed + Reassuring",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "I think I've been charged twice for the same item. The transactions look identical."
+    },
+    {
+      "role": "agent",
+      "text": "Ah, I\u2019ve seen situations like this before\u2014don\u2019t worry, I\u2019ll get this sorted for you. Let\u2019s pull up your purchases and have a quick look."
+    },
+    {
+      "role": "customer",
+      "text": "I appreciate it\u2014I just don\u2019t want to pay extra."
+    },
+    {
+      "role": "agent",
+      "text": "Good news\u2014it\u2019s just a temporary hold from your bank. It\u2019ll drop off in about 24\u201348 hours. I\u2019ll keep an eye on it and give you a heads-up when it\u2019s gone."
+    },
+    {
+      "role": "customer",
+      "text": "And if it doesn\u2019t go away?"
+    },
+    {
+      "role": "agent",
+      "text": "Then we\u2019ll jump in and process a refund. You won\u2019t be left hanging."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks, I feel better now."
+    }
+  ]
+}

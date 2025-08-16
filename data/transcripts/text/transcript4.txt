@@ -1,0 +1,31 @@
+{
+  "id": 4,
+  "customer_tone": "Demanding",
+  "agent_tone": "Sarcastic + Blunt",
+  "conversation": [
+    {
+      "role": "customer",
+      "text": "I want a refund for my flight\u2014even though it was a non\u2011refundable ticket. The cancellation was out of my control."
+    },
+    {
+      "role": "agent",
+      "text": "Well, that\u2019s why they call it non\u2011refundable. It\u2019s right there in the terms you agreed to."
+    },
+    {
+      "role": "customer",
+      "text": "I\u2019m asking because it wasn\u2019t my fault."
+    },
+    {
+      "role": "agent",
+      "text": "Fault isn\u2019t relevant here. You either take the travel credit we offer or you get nothing."
+    },
+    {
+      "role": "customer",
+      "text": "Fine, just give me the credit."
+    },
+    {
+      "role": "agent",
+      "text": "Alright, I\u2019ll send it out. Read the terms next time."
+    }
+  ]
+}
